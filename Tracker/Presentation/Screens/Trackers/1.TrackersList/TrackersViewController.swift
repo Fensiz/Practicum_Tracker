@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  TrackersViewController.swift
 //  Tracker
 //
 //  Created by Симонов Иван Дмитриевич on 20.04.2025.
@@ -7,7 +7,9 @@
 
 import UIKit
 
-class TrackersViewController: UIViewController {
+final class TrackersViewController: UIViewController {
+
+	// MARK: - Properties
 
 	private var presenter: TrackersPresenterProtocol
 
@@ -29,10 +31,7 @@ class TrackersViewController: UIViewController {
 
 	private let dummyView = TrackersEmptyView(text: "Что будем отслеживать?")
 
-
-	private func updateEmptyState() {
-		dummyView.isHidden = !presenter.visibleTrackers.isEmpty
-	}
+	// MARK: - Init
 
 	init(presenter: TrackersPresenterProtocol = TrackersPresenter()) {
 		self.presenter = presenter
@@ -43,48 +42,24 @@ class TrackersViewController: UIViewController {
 		fatalError("init(coder:) has not been implemented")
 	}
 
+	// MARK: - Lifecycle
+
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		setupUI()
+		setupNavigationBar()
+		setupBindings()
+		updateEmptyState()
+	}
+
+	// MARK: - Private Methods
+
+	private func setupUI() {
 		title = "Трекеры"
-
-		presenter.onChange = { [weak self] in
-			self?.updateEmptyState()
-			self?.collectionView.reloadData()
-		}
-		navigationController?.navigationBar.prefersLargeTitles = true
-
-		//кнопка +
-		let action = UIAction { [weak self] _ in
-			let formVC = TrackerTypeSelectionViewController()
-			formVC.delegate = self
-
-			self?.present(formVC, animated: true)
-		}
-		navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .add, primaryAction: action)
-		navigationItem.leftBarButtonItem?.tintColor = .black
-
-		//date-picker
-		let datePicker = UIDatePicker()
-		datePicker.datePickerMode = .date
-		datePicker.preferredDatePickerStyle = .compact
-		let pickerAction = UIAction { [weak self] _ in
-			self?.presenter.updateDate(datePicker.date)
-		}
-		datePicker.addAction(pickerAction, for: .valueChanged)
-		navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
-
-		// поиск
-		let searchController = UISearchController(searchResultsController: nil)
-		searchController.searchBar.placeholder = "Поиск"
-		searchController.obscuresBackgroundDuringPresentation = false
-		searchController.hidesNavigationBarDuringPresentation = false
-		navigationItem.searchController = searchController
-		definesPresentationContext = true
-
-		// collectionView
-		dummyView.translatesAutoresizingMaskIntoConstraints = false
 		view.addSubview(dummyView)
 		view.addSubview(collectionView)
+
+		dummyView.translatesAutoresizingMaskIntoConstraints = false
 
 		NSLayoutConstraint.activate([
 			collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -95,10 +70,52 @@ class TrackersViewController: UIViewController {
 			dummyView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
 			dummyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 		])
+	}
 
-		updateEmptyState()
+	private func setupNavigationBar() {
+		navigationController?.navigationBar.prefersLargeTitles = true
+
+		let addAction = UIAction { [weak self] _ in
+			self?.showTrackerTypeSelection()
+		}
+		navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .add, primaryAction: addAction)
+		navigationItem.leftBarButtonItem?.tintColor = .black
+
+		let datePicker = UIDatePicker()
+		datePicker.datePickerMode = .date
+		datePicker.preferredDatePickerStyle = .compact
+		datePicker.addAction(UIAction { [weak self] _ in
+			self?.presenter.updateDate(datePicker.date)
+		}, for: .valueChanged)
+		navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
+
+		let searchController = UISearchController(searchResultsController: nil)
+		searchController.searchBar.placeholder = "Поиск"
+		searchController.obscuresBackgroundDuringPresentation = false
+		searchController.hidesNavigationBarDuringPresentation = false
+		navigationItem.searchController = searchController
+		definesPresentationContext = true
+	}
+
+	private func setupBindings() {
+		presenter.onChange = { [weak self] in
+			self?.updateEmptyState()
+			self?.collectionView.reloadData()
+		}
+	}
+
+	private func updateEmptyState() {
+		dummyView.isHidden = !presenter.visibleTrackers.isEmpty
+	}
+
+	private func showTrackerTypeSelection() {
+		let formVC = TrackerTypeSelectionViewController()
+		formVC.delegate = self
+		present(formVC, animated: true)
 	}
 }
+
+// MARK: - TrackerTypeSelectionDelegate
 
 extension TrackersViewController: TrackerTypeSelectionDelegate {
 	func didSelectTrackerType(_ type: TrackerType, vc: UIViewController) {
@@ -131,7 +148,10 @@ extension TrackersViewController: UICollectionViewDataSource {
 	}
 
 	func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-		guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.reuseIdentifier, for: indexPath) as? TrackerCell else {
+		guard let cell = collectionView.dequeueReusableCell(
+			withReuseIdentifier: TrackerCell.reuseIdentifier,
+			for: indexPath
+		) as? TrackerCell else {
 			return UICollectionViewCell()
 		}
 
@@ -186,8 +206,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 		9
 	}
 
-	func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int
-	) -> CGSize {
+	func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
 		CGSize(width: collectionView.bounds.width, height: 36)
 	}
 }
