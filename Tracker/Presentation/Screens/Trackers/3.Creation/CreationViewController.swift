@@ -55,7 +55,7 @@ class CreationViewController: BaseViewController {
 	private lazy var trackerOptions: [TrackerOption] = []
 
 
-	var delegate: CreationViewControllerDelegate?
+	weak var delegate: CreationViewControllerDelegate?
 
 	init(
 		type: TrackerType,

@@ -12,6 +12,8 @@ final class NewCategoryViewController: BaseViewController {
 
 	var onCategoryCreated: ((String) -> Void)?
 
+	weak var delegate: NewCategoryViewControllerDelegate?
+
 	private lazy var textField: UITextField = {
 		let tf = PaddedTextField(placeholder: "Введите название категории")
 		tf.addAction(UIAction { [weak self] _ in self?.textFieldEditingChanged() }, for: .editingChanged)
@@ -26,7 +28,8 @@ final class NewCategoryViewController: BaseViewController {
 
 	private func textFieldEditingChanged() {
 		let trimmedText = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-		createButton.isEnabled = !trimmedText.isEmpty
+		let isUnique = !(delegate?.categoryExists(with: trimmedText) ?? false)
+		createButton.isEnabled = !trimmedText.isEmpty && isUnique
 	}
 
 	override func viewDidLoad() {

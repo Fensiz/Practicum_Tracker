@@ -7,10 +7,6 @@
 
 import UIKit
 
-protocol CategorySelectionDelegate: AnyObject {
-	func didSelectCategory(_ category: TrackerCategory, _ categories: [TrackerCategory])
-}
-
 final class CategorySelectionViewController: BaseViewController {
 
 	private let tableView = UITableView()
@@ -102,13 +98,56 @@ final class CategorySelectionViewController: BaseViewController {
 
 	private func addCategoryTapped() {
 		let newCategoryVC = NewCategoryViewController()
+		newCategoryVC.delegate = self
 		newCategoryVC.onCategoryCreated = { [weak self] categoryName in
 			guard let self else { return }
-			self.categories.append(TrackerCategory(title: categoryName, trackers: []))
-			self.tableView.reloadData()
+			let newCategory = TrackerCategory(title: categoryName, trackers: [])
+			self.categories.append(newCategory)
+
+			let newIndexPath = IndexPath(row: self.categories.count - 1, section: 0)
+
+			self.tableView.performBatchUpdates({
+				self.tableView.insertRows(at: [newIndexPath], with: .automatic)
+			}, completion: { _ in
+				self.updateUI()
+
+				// Перезагружаем предыдущую предпоследнюю ячейку (если была), чтобы правильно обновить её разделитель
+				if self.categories.count > 1 {
+					let previousIndexPath = IndexPath(row: self.categories.count - 2, section: 0)
+					self.tableView.reloadRows(at: [previousIndexPath], with: .none)
+				}
+			})
+
 			print(self.categories)
 		}
 		present(newCategoryVC, animated: true)
+	}
+
+	private func deleteCategory(at indexPath: IndexPath) {
+		let categoryToDelete = categories[indexPath.row]
+		categories.remove(at: indexPath.row)
+
+		if categoryToDelete == selectedCategory {
+			selectedCategory = nil
+		}
+
+		tableView.performBatchUpdates {
+			tableView.deleteRows(at: [indexPath], with: .automatic)
+		} completion: { [weak self] _ in
+			guard let self else { return }
+			self.updateUI()
+
+			if !self.categories.isEmpty {
+				let lastIndexPath = IndexPath(row: self.categories.count - 1, section: 0)
+				self.tableView.reloadRows(at: [lastIndexPath], with: .none)
+			}
+		}
+	}
+}
+
+extension CategorySelectionViewController: NewCategoryViewControllerDelegate {
+	func categoryExists(with title: String) -> Bool {
+		categories.contains { $0.title.caseInsensitiveCompare(title) == .orderedSame }
 	}
 }
 
@@ -144,5 +183,14 @@ extension CategorySelectionViewController: UITableViewDataSource, UITableViewDel
 	}
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
 		Constants.tableViewCellHeight
+	}
+
+	func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+		return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: nil) { [weak self] _ in
+			let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
+				self?.deleteCategory(at: indexPath)
+			}
+			return UIMenu(title: "", children: [deleteAction])
+		}
 	}
 }
