@@ -99,7 +99,7 @@ class TrackersViewController: UIViewController {
 
 		//кнопка +
 		let action = UIAction { [weak self] _ in
-			let formVC = TrackerSelectionViewController()
+			let formVC = TrackerTypeSelectionViewController()
 			formVC.delegate = self
 
 			self?.present(formVC, animated: true)

@@ -11,9 +11,11 @@ enum Constants {
 	static let fontSize: CGFloat = 17
 	static let tableViewCellHeight: CGFloat = 75
 	static let commonHeight: CGFloat = 75
+	static let buttonHeight: CGFloat = 60
 	static let colorEmojiCollectionHeight: CGFloat = 204
 	static let commonPadding: CGFloat = 16
 	static let smallPadding: CGFloat = 8
+	static let mediumPadding: CGFloat = 20
 	static let cornerRadius: CGFloat = 16
 
 	// MARK: - Tracker Cell
