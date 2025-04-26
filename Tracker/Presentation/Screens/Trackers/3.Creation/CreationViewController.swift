@@ -33,7 +33,7 @@ class CreationViewController: BaseViewController {
 		]),
 		.color([
 			.systemRed, .systemBlue, .systemGreen, .systemOrange, .systemPurple, .systemTeal,
-			.systemPink, .systemCyan, .systemYellow, .systemBrown, .systemIndigo, .systemMint,
+			.systemPink, .ypCellBack, .systemYellow, .systemBrown, .systemIndigo, .ypBlue,
 			.systemRed.withAlphaComponent(0.5), .systemBlue.withAlphaComponent(0.5), .systemGreen.withAlphaComponent(0.5),
 			.systemOrange.withAlphaComponent(0.5), .systemPurple.withAlphaComponent(0.5), .systemTeal.withAlphaComponent(0.5)
 		])

@@ -18,7 +18,9 @@ final class TabBarController: UITabBarController {
 		appearance.configureWithDefaultBackground()
 		appearance.backgroundColor = .white
 		tabBar.standardAppearance = appearance
-		tabBar.scrollEdgeAppearance = appearance // без этой строки в iOS 15 не отображается разделитель
+		if #available(iOS 15.0, *) {
+			tabBar.scrollEdgeAppearance = appearance // без этой строки в iOS 15 не отображается разделитель
+		}
 
 		let presenter = TrackersPresenter()
 		let trackersViewController = UINavigationController(
