@@ -173,6 +173,7 @@ protocol CreationViewControllerDelegate: AnyObject {
 extension TrackersViewController: CreationViewControllerDelegate {
 	func didCreateTrackerAndUpdate(categories: [TrackerCategory]) {
 		self.categories = categories
+		updateEmptyViewVisibility()
 		collectionView.reloadData()
 	}
 }

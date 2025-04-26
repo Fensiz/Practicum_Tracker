@@ -14,6 +14,7 @@ enum Constants {
 	static let colorEmojiCollectionHeight: CGFloat = 204
 	static let commonPadding: CGFloat = 16
 	static let smallPadding: CGFloat = 8
+	static let cornerRadius: CGFloat = 16
 
 	// MARK: - Tracker Cell
 

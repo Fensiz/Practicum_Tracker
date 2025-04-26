@@ -7,32 +7,35 @@
 
 import UIKit
 
-enum AppButtonStyle {
-	case filled(backgroundColor: UIColor = .black, textColor: UIColor = .white)
-	case outlined(borderColor: UIColor = .ypRed, textColor: UIColor = .ypRed)
-}
-
 final class AppButton: UIButton {
+
+	// MARK: - Nested Types
+
+	enum AppButtonStyle {
+		case filled(backgroundColor: UIColor = .ypBlack, textColor: UIColor = .ypWhite)
+		case outlined(borderColor: UIColor = .ypRed, textColor: UIColor = .ypRed)
+	}
+
+	// MARK: - Private Properties
 
 	private var style: AppButtonStyle?
 
-	// Цвета по состояниям
 	private var normalBackgroundColor: UIColor?
 	private var normalTextColor: UIColor?
 
-	private var disabledBackgroundColor: UIColor = .systemGray5
-	private var disabledTextColor: UIColor = .systemGray
+	private let disabledBackgroundColor: UIColor = .ypGray
+	private let disabledTextColor: UIColor = .ypWhite
+
+	// MARK: - Lifecycle
 
 	override var isHighlighted: Bool {
 		didSet {
 			alpha = isHighlighted ? 0.6 : 1.0
 		}
 	}
-
+	
 	override var isEnabled: Bool {
-		didSet {
-			updateEnabledState()
-		}
+		didSet { updateEnabledState() }
 	}
 
 	init(title: String, style: AppButtonStyle = .filled()) {
@@ -45,37 +48,34 @@ final class AppButton: UIButton {
 		fatalError("init(coder:) has not been implemented")
 	}
 
+	// MARK: - Private Methods
+
 	private func configure(title: String, style: AppButtonStyle) {
 		setTitle(title, for: .normal)
-		titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-		layer.cornerRadius = 16
+		titleLabel?.font = .ypMedium16
+		layer.cornerRadius = Constants.cornerRadius
 		translatesAutoresizingMaskIntoConstraints = false
 
 		switch style {
-		case .filled(let backgroundColor, let textColor):
-			self.normalBackgroundColor = backgroundColor
-			self.normalTextColor = textColor
-			self.backgroundColor = backgroundColor
-			setTitleColor(textColor, for: .normal)
-			layer.borderWidth = 0
+			case .filled(let backgroundColor, let textColor):
+				self.normalBackgroundColor = backgroundColor
+				self.normalTextColor = textColor
+				self.backgroundColor = backgroundColor
+				setTitleColor(textColor, for: .normal)
+				layer.borderWidth = 0
 
-		case .outlined(let borderColor, let textColor):
-			self.normalBackgroundColor = .clear
-			self.normalTextColor = textColor
-			backgroundColor = .clear
-			setTitleColor(textColor, for: .normal)
-			layer.borderColor = borderColor.cgColor
-			layer.borderWidth = 1
+			case .outlined(let borderColor, let textColor):
+				normalBackgroundColor = .clear
+				normalTextColor = textColor
+				backgroundColor = .clear
+				setTitleColor(textColor, for: .normal)
+				layer.borderColor = borderColor.cgColor
+				layer.borderWidth = 1
 		}
 	}
 
 	private func updateEnabledState() {
-		if isEnabled {
-			backgroundColor = normalBackgroundColor
-			setTitleColor(normalTextColor, for: .normal)
-		} else {
-			backgroundColor = disabledBackgroundColor
-			setTitleColor(disabledTextColor, for: .normal)
-		}
+		backgroundColor = isEnabled ? normalBackgroundColor : disabledBackgroundColor
+		setTitleColor(isEnabled ? normalTextColor : disabledTextColor, for: .normal)
 	}
 }
