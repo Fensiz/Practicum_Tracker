@@ -14,7 +14,7 @@ final class SectionHeaderView: UICollectionReusableView {
 
 	private let titleLabel: UILabel = {
 		let label = UILabel()
-		label.font = Constants.ypBold19
+		label.font = .ypBold19
 		label.textColor = .label
 		label.translatesAutoresizingMaskIntoConstraints = false
 		return label

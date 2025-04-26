@@ -24,29 +24,29 @@ final class TrackerCell: UICollectionViewCell {
 
 	private let emojiBackgroundView: UIView = {
 		let view = UIView()
-		view.backgroundColor = .white.withAlphaComponent(0.3)
-		view.layer.cornerRadius = 12
+		view.backgroundColor = .white.withAlphaComponent(Constants.colorCellEmojiBackOpacity)
+		view.layer.cornerRadius = Constants.trackerCellEmojiSize / 2
 		view.layer.masksToBounds = true
 		return view
 	}()
 
 	private let emojiLabel: UILabel = {
 		let label = UILabel()
-		label.font = .systemFont(ofSize: 16)
+		label.font = .ypMedium16
 		label.textAlignment = .center
 		return label
 	}()
 
 	private let countLabel: UILabel = {
 		let label = UILabel()
-		label.font = .systemFont(ofSize: 17)
+		label.font = .ypMedium12
 		label.textColor = .label
 		return label
 	}()
 
 	private let nameLabel: UILabel = {
 		let label = UILabel()
-		label.font = Constants.ypMedium12
+		label.font = .ypMedium12
 		label.textColor = .white
 		label.numberOfLines = Constants.trackerCellLineLimit
 		label.textAlignment = .left
@@ -55,7 +55,7 @@ final class TrackerCell: UICollectionViewCell {
 
 	private let addButton: UIButton = {
 		let button = UIButton(type: .system)
-		button.titleLabel?.font = Constants.ypRegular17
+		button.titleLabel?.font = .ypRegular17
 		button.tintColor = .white
 		button.backgroundColor = .black
 		button.layer.cornerRadius = Constants.trackerCellAddButtonSize / 2
