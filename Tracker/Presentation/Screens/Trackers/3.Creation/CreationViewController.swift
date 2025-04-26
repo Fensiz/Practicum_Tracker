@@ -14,6 +14,7 @@ class CreationViewController: BaseViewController {
 	private var selectedColorIndex: IndexPath?
 	private var selectedTracker: Tracker?
 	private var isTextTooLong = false
+	private var currentDate: Date?
 
 	private let textField: UITextField = PaddedTextField(placeholder: "Введите название трекера")
 	private let tableView = UITableView(frame: .zero, style: .plain)
@@ -56,7 +57,13 @@ class CreationViewController: BaseViewController {
 
 	var delegate: CreationViewControllerDelegate?
 
-	init(type: TrackerType, categories: [TrackerCategory]? = nil, selectedTracker: Tracker? = nil, selectedCategory: TrackerCategory? = nil) {
+	init(
+		type: TrackerType,
+		categories: [TrackerCategory]? = nil,
+		selectedTracker: Tracker? = nil,
+		selectedCategory: TrackerCategory? = nil,
+		currentDate: Date? = nil
+	) {
 		if let categories {
 			self.categories = categories
 		}
@@ -69,6 +76,7 @@ class CreationViewController: BaseViewController {
 			self.textField.text = selectedTracker.name
 		}
 		self.trackerType = type
+		self.currentDate = currentDate
 
 		let layout = UICollectionViewFlowLayout()
 		layout.scrollDirection = .vertical
@@ -246,19 +254,20 @@ class CreationViewController: BaseViewController {
 			UIAction { [weak self] _ in
 				guard let self else { return }
 				if let selectedTracker {
-					guard let selectedColorIndex = self.selectedColorIndex,
-						  let selectedEmojiIndex = self.selectedEmojiIndex,
-						  case let .color(colors) = self.collectionBlocks[selectedColorIndex.section],
-						  case let .emoji(emojis) = self.collectionBlocks[selectedEmojiIndex.section]
-					else { return }
-					let tracker = Tracker(
-						id: selectedTracker.id,
-						name: self.textField.text ?? "",
-						color: colors[selectedColorIndex.row],
-						emoji: emojis[selectedEmojiIndex.row],
-						schedule: self.weekDays
-					)
-					updateTracker(tracker, inCategory: self.selectedCategory)
+					// TODO: - добавить реализацию редактирования
+//					guard let selectedColorIndex = self.selectedColorIndex,
+//						  let selectedEmojiIndex = self.selectedEmojiIndex,
+//						  case let .color(colors) = self.collectionBlocks[selectedColorIndex.section],
+//						  case let .emoji(emojis) = self.collectionBlocks[selectedEmojiIndex.section]
+//					else { return }
+//					let tracker = Tracker(
+//						id: selectedTracker.id,
+//						name: self.textField.text ?? "",
+//						color: colors[selectedColorIndex.row],
+//						emoji: emojis[selectedEmojiIndex.row],
+//						schedule: self.weekDays
+//					)
+//					updateTracker(tracker, inCategory: self.selectedCategory)
 				} else {
 					guard let selectedColorIndex = self.selectedColorIndex,
 						  let selectedEmojiIndex = self.selectedEmojiIndex,
@@ -269,7 +278,8 @@ class CreationViewController: BaseViewController {
 						name: self.textField.text ?? "",
 						color: colors[selectedColorIndex.row],
 						emoji: emojis[selectedEmojiIndex.row],
-						schedule: self.weekDays
+						schedule: trackerType == .habit ? self.weekDays : nil,
+						date: trackerType == .nonRegular ? currentDate : nil
 					)
 					self.addTracker(tracker, toCategory: self.selectedCategory)
 				}

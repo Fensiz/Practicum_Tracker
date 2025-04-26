@@ -18,7 +18,7 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 		}
 	}
 	private var completedTrackers: Set<TrackerRecord>
-	private var currentDate: Date {
+	private(set) var currentDate: Date {
 		didSet {
 			onChange?()
 		}
@@ -40,8 +40,10 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 				let matchesSchedule: Bool
 				if let schedule = tracker.schedule {
 					matchesSchedule = schedule.contains(currentWeekDay)
+				} else if let trackerDate = tracker.date {
+					matchesSchedule = Calendar.current.isDate(trackerDate, inSameDayAs: currentDate)
 				} else {
-					matchesSchedule = true
+					matchesSchedule = false
 				}
 
 				let matchesSearch: Bool
@@ -53,6 +55,7 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 
 				return matchesSchedule && matchesSearch
 			}
+
 			return filteredTrackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filteredTrackers)
 		}
 	}
@@ -76,7 +79,7 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 					name: "Кошка заслонила камеру на созвоне",
 					color: .ypRed,
 					emoji: "😊",
-					schedule: [.friday]
+					date: Date()
 				)]
 			)
 		]

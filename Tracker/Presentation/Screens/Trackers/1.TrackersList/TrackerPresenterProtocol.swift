@@ -11,6 +11,7 @@ protocol TrackersPresenterProtocol {
 	var onChange: (() -> Void)? { get set }
 	var visibleTrackers: [TrackerCategory] { get }
 	var categories: [TrackerCategory] { get }
+	var currentDate: Date { get }
 
 	func updateDate(_ date: Date)
 	func toggleCompletion(for tracker: Tracker)

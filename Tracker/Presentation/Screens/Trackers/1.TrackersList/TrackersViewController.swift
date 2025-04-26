@@ -122,7 +122,8 @@ extension TrackersViewController: TrackerTypeSelectionDelegate {
 	func didSelectTrackerType(_ type: TrackerType, vc: UIViewController) {
 		let formVC = CreationViewController(
 			type: type,
-			categories: presenter.categories
+			categories: presenter.categories,
+			currentDate: type == .nonRegular ? presenter.currentDate : nil
 		)
 		formVC.delegate = self
 		vc.present(formVC, animated: true)
