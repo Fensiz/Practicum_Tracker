@@ -8,30 +8,55 @@
 import UIKit
 
 final class ColorCell: UICollectionViewCell {
+
+	// MARK: - Reuse Identifier
+
 	static let reuseIdentifier = "ColorCell"
+
+	// MARK: - UI Elements
 
 	private let colorView: UIView = {
 		let view = UIView()
 		view.backgroundColor = .clear
-		view.translatesAutoresizingMaskIntoConstraints = false
-		view.layer.cornerRadius = 8
+		view.layer.cornerRadius = Constants.colorCellColorViewRadius
 		view.clipsToBounds = true
+		view.translatesAutoresizingMaskIntoConstraints = false
 		return view
 	}()
 
 	private let selectionBorderView: UIView = {
 		let view = UIView()
-		view.layer.borderWidth = 3
+		view.layer.borderWidth = Constants.colorCellOuterViewBorderWidth
 		view.layer.borderColor = UIColor.black.cgColor
-		view.layer.cornerRadius = 11
+		view.layer.cornerRadius = Constants.colorCellOuterViewRadius
 		view.backgroundColor = .clear
-		view.isHidden = true // сначала скрыт
+		view.isHidden = true
 		view.translatesAutoresizingMaskIntoConstraints = false
 		return view
 	}()
 
+	// MARK: - Lifecycle
+
 	override init(frame: CGRect) {
 		super.init(frame: frame)
+		setupUI()
+	}
+
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+
+	// MARK: - Public Methods
+
+	func configure(with color: UIColor, isSelected: Bool) {
+		colorView.backgroundColor = color
+		selectionBorderView.layer.borderColor = color.withAlphaComponent(Constants.colorCellSelectedOpacity).cgColor
+		selectionBorderView.isHidden = !isSelected
+	}
+
+	// MARK: - Private Methods
+
+	private func setupUI() {
 		contentView.backgroundColor = .clear
 		contentView.addSubview(selectionBorderView)
 		contentView.addSubview(colorView)
@@ -39,23 +64,13 @@ final class ColorCell: UICollectionViewCell {
 		NSLayoutConstraint.activate([
 			selectionBorderView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
 			selectionBorderView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-			selectionBorderView.widthAnchor.constraint(equalToConstant: 52),
-			selectionBorderView.heightAnchor.constraint(equalToConstant: 52),
+			selectionBorderView.widthAnchor.constraint(equalToConstant: Constants.colorCellSize),
+			selectionBorderView.heightAnchor.constraint(equalToConstant: Constants.colorCellSize),
 
 			colorView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
 			colorView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-			colorView.widthAnchor.constraint(equalToConstant: 40),
-			colorView.heightAnchor.constraint(equalToConstant: 40)
+			colorView.widthAnchor.constraint(equalToConstant: Constants.colorCellColorSize),
+			colorView.heightAnchor.constraint(equalToConstant: Constants.colorCellColorSize)
 		])
-	}
-
-	required init?(coder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
-	}
-
-	func configure(with color: UIColor, isSelected: Bool) {
-		colorView.backgroundColor = color
-		selectionBorderView.layer.borderColor = color.withAlphaComponent(0.3).cgColor
-		selectionBorderView.isHidden = !isSelected
 	}
 }

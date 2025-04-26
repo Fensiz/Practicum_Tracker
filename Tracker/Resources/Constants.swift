@@ -29,4 +29,13 @@ enum Constants {
 	static let trackerCellPadding: CGFloat = 12
 	static let trackerCellEmojiSize: CGFloat = 24
 	static let trackerCellLineLimit: Int = 2
+
+	// MARK: - Color Cell
+
+	static let colorCellSize: CGFloat = 52
+	static let colorCellColorSize: CGFloat = 40
+	static let colorCellSelectedOpacity: CGFloat = 0.3
+	static let colorCellColorViewRadius: CGFloat = 8
+	static let colorCellOuterViewRadius: CGFloat = 11
+	static let colorCellOuterViewBorderWidth: CGFloat = 3
 }
