@@ -14,6 +14,19 @@ enum Constants {
 	static let colorEmojiCollectionHeight: CGFloat = 204
 	static let commonPadding: CGFloat = 16
 
+	// MARK: - Fonts
+
+	static let ypMedium12: UIFont = .systemFont(ofSize: 12, weight: .medium)
 	static let ypBold19: UIFont = .systemFont(ofSize: 19, weight: .bold)
 	static let ypRegular17: UIFont = .systemFont(ofSize: 17, weight: .regular)
+
+	// MARK: - Tracker Cell
+
+	static let trackerCellAddButtonSize: CGFloat = 34
+	static let trackerCellAddButtonOpacity: CGFloat = 0.3
+	static let trackerCellTopContainerHeight: CGFloat = 90
+	static let trackerCellSmallPadding: CGFloat = 8
+	static let trackerCellPadding: CGFloat = 12
+	static let trackerCellEmojiSize: CGFloat = 24
+	static let trackerCellLineLimit: Int = 2
 }

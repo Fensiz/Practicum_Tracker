@@ -49,7 +49,7 @@ class TrackersViewController: UIViewController {
 		TrackerCategory(
 			title: "Домашний уют",
 			trackers: [
-				Tracker(id: UUID(), name: "Поливать растения", color: .green, emoji: "😊", schedule: [.friday])
+				Tracker(id: UUID(), name: "Поливать растения", color: .systemTeal, emoji: "😊", schedule: [.friday])
 			]
 		),
 		TrackerCategory(
