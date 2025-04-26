@@ -7,44 +7,67 @@
 
 import UIKit
 
-class ScheduleCell: UITableViewCell {
-	private let dayLabel = UILabel()
-	private let toggle = UISwitch()
+final class ScheduleCell: UITableViewCell {
+
+	// MARK: - Public Properties
+
 	var toggleAction: ((Bool) -> Void)?
+
+	// MARK: - UI Elements
+
+	private let dayLabel: UILabel = {
+		let label = UILabel()
+		label.font = .ypRegular17
+		return label
+	}()
+
+	private let toggle: UISwitch = {
+		let toggleSwitch = UISwitch()
+		toggleSwitch.onTintColor = .ypBlue
+		return toggleSwitch
+	}()
+
+	// MARK: - Initializers
 
 	override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
 		super.init(style: style, reuseIdentifier: reuseIdentifier)
-		setup()
+		setupUI()
+		setupActions()
 	}
 
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 
+	// MARK: - Public Methods
+
 	func configure(with title: String, isOn: Bool) {
 		dayLabel.text = title
 		toggle.isOn = isOn
 	}
 
-	private func setup() {
+	// MARK: - Private Methods
+
+	private func setupUI() {
 		backgroundColor = .clear
-		dayLabel.translatesAutoresizingMaskIntoConstraints = false
-		toggle.translatesAutoresizingMaskIntoConstraints = false
-		contentView.addSubview(dayLabel)
-		contentView.addSubview(toggle)
+
+		[dayLabel, toggle].forEach { view in
+			view.translatesAutoresizingMaskIntoConstraints = false
+			contentView.addSubview(view)
+		}
 
 		NSLayoutConstraint.activate([
-			dayLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+			dayLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Constants.commonPadding),
 			dayLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
-			toggle.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+			toggle.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Constants.commonPadding),
 			toggle.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
 		])
-
-		toggle.addTarget(self, action: #selector(toggleChanged), for: .valueChanged)
 	}
 
-	@objc private func toggleChanged() {
-		toggleAction?(toggle.isOn)
+	private func setupActions() {
+		toggle.addAction(UIAction { [weak self] _ in
+			self?.toggleAction?(self?.toggle.isOn ?? false)
+		}, for: .valueChanged)
 	}
 }
