@@ -121,11 +121,19 @@ extension CategorySelectionViewController: UITableViewDataSource, UITableViewDel
 		let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
 		cell.backgroundColor = .clear
 		cell.textLabel?.text = categories[indexPath.row].title
+
+		if categories[indexPath.row] == selectedCategory {
+			cell.accessoryType = .checkmark
+		} else {
+			cell.accessoryType = .none
+		}
+
 		if indexPath.row == categories.count - 1 {
 			cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
 		} else {
 			cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
 		}
+
 		return cell
 	}
 
