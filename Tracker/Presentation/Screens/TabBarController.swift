@@ -20,7 +20,9 @@ final class TabBarController: UITabBarController {
 		tabBar.standardAppearance = appearance
 		tabBar.scrollEdgeAppearance = appearance // без этой строки в iOS 15 не отображается разделитель
 
-		let trackersViewController = UINavigationController(rootViewController: TrackersViewController()
+		let presenter = TrackersPresenter()
+		let trackersViewController = UINavigationController(
+			rootViewController: TrackersViewController(presenter: presenter)
 		)
 
 		trackersViewController.tabBarItem = UITabBarItem(
@@ -36,7 +38,7 @@ final class TabBarController: UITabBarController {
 			image: UIImage(systemName: "hare.fill"),
 			selectedImage: nil
 		)
-		
+
 		self.viewControllers = [trackersViewController, statisticViewController]
 	}
 }

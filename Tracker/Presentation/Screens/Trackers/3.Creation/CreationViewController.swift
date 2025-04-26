@@ -9,7 +9,6 @@ import UIKit
 
 class CreationViewController: BaseViewController {
 
-
 	private var trackerType: TrackerType
 	private var selectedEmojiIndex: IndexPath?
 	private var selectedColorIndex: IndexPath?
@@ -76,7 +75,6 @@ class CreationViewController: BaseViewController {
 		layout.itemSize = CGSize(width: 52, height: 52)
 		layout.minimumLineSpacing = 8
 		layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-		//		layout.headerReferenceSize = CGSize(width: UIScreen.main.bounds.width, height: 40)
 
 		collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
 
@@ -160,6 +158,31 @@ class CreationViewController: BaseViewController {
 		categories[index] = updatedCategory
 	}
 
+	func updateTracker(_ updatedTracker: Tracker, inCategory category: TrackerCategory?) {
+		guard
+			let category,
+			let categoryIndex = categories.firstIndex(where: { $0.title == category.title }) else {
+			print("Категория не найдена")
+			return
+		}
+
+		var trackers = categories[categoryIndex].trackers
+
+		guard let trackerIndex = trackers.firstIndex(where: { $0.id == updatedTracker.id }) else {
+			print("Трекер не найден в категории")
+			return
+		}
+
+		trackers[trackerIndex] = updatedTracker
+
+		let updatedCategory = TrackerCategory(
+			title: category.title,
+			trackers: trackers
+		)
+
+		categories[categoryIndex] = updatedCategory
+	}
+
 	private func validateForm() {
 		let isTextFieldFilled = !(textField.text?.isEmpty ?? true)
 		let isCategorySelected = selectedCategory != nil
@@ -222,8 +245,6 @@ class CreationViewController: BaseViewController {
 		saveButton.addAction(
 			UIAction { [weak self] _ in
 				guard let self else { return }
-				print(self.delegate, "<---")
-				print(self.categories)
 				if let selectedTracker {
 					guard let selectedColorIndex = self.selectedColorIndex,
 						  let selectedEmojiIndex = self.selectedEmojiIndex,
@@ -237,6 +258,7 @@ class CreationViewController: BaseViewController {
 						emoji: emojis[selectedEmojiIndex.row],
 						schedule: self.weekDays
 					)
+					updateTracker(tracker, inCategory: self.selectedCategory)
 				} else {
 					guard let selectedColorIndex = self.selectedColorIndex,
 						  let selectedEmojiIndex = self.selectedEmojiIndex,
@@ -244,7 +266,6 @@ class CreationViewController: BaseViewController {
 						  case let .emoji(emojis) = self.collectionBlocks[selectedEmojiIndex.section]
 					else { return }
 					let tracker = Tracker(
-						id: UUID(),
 						name: self.textField.text ?? "",
 						color: colors[selectedColorIndex.row],
 						emoji: emojis[selectedEmojiIndex.row],
@@ -268,16 +289,6 @@ class CreationViewController: BaseViewController {
 
 	private func layoutUI() {
 		NSLayoutConstraint.activate([
-			//			textField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
-			//			textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-			//			textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-			//			textField.heightAnchor.constraint(equalToConstant: 75),
-			//
-			//			tableView.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 16),
-			//			tableView.leadingAnchor.constraint(equalTo: textField.leadingAnchor),
-			//			tableView.trailingAnchor.constraint(equalTo: textField.trailingAnchor),
-			//			tableView.heightAnchor.constraint(equalToConstant: CGFloat(75 * trackerOptions.count)),
-
 			collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
 			collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
 			collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
