@@ -93,6 +93,7 @@ final class TrackersViewController: UIViewController {
 		searchController.searchBar.placeholder = "Поиск"
 		searchController.obscuresBackgroundDuringPresentation = false
 		searchController.hidesNavigationBarDuringPresentation = false
+		searchController.searchResultsUpdater = self
 		navigationItem.searchController = searchController
 		definesPresentationContext = true
 	}
@@ -133,6 +134,14 @@ extension TrackersViewController: TrackerTypeSelectionDelegate {
 extension TrackersViewController: CreationViewControllerDelegate {
 	func didCreateTrackerAndUpdate(categories: [TrackerCategory]) {
 		presenter.updateCategories(categories)
+	}
+}
+
+// MARK: - UISearchResultsUpdating
+
+extension TrackersViewController: UISearchResultsUpdating {
+	func updateSearchResults(for searchController: UISearchController) {
+		presenter.updateSearchText(searchController.searchBar.text ?? "")
 	}
 }
 

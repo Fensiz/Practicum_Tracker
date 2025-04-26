@@ -17,8 +17,14 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 			onChange?()
 		}
 	}
-	private(set) var completedTrackers: Set<TrackerRecord>
-	private(set) var currentDate: Date {
+	private var completedTrackers: Set<TrackerRecord>
+	private var currentDate: Date {
+		didSet {
+			onChange?()
+		}
+	}
+
+	private var searchText: String = "" {
 		didSet {
 			onChange?()
 		}
@@ -30,11 +36,24 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 		let currentWeekDay = WeekDay.from(date: currentDate)
 
 		return categories.compactMap { category in
-			let trackersForDay = category.trackers.filter { tracker in
-				guard let schedule = tracker.schedule else { return true }
-				return schedule.contains(currentWeekDay)
+			let filteredTrackers = category.trackers.filter { tracker in
+				let matchesSchedule: Bool
+				if let schedule = tracker.schedule {
+					matchesSchedule = schedule.contains(currentWeekDay)
+				} else {
+					matchesSchedule = true
+				}
+
+				let matchesSearch: Bool
+				if searchText.isEmpty {
+					matchesSearch = true
+				} else {
+					matchesSearch = tracker.name.lowercased().contains(searchText.lowercased())
+				}
+
+				return matchesSchedule && matchesSearch
 			}
-			return trackersForDay.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackersForDay)
+			return filteredTrackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filteredTrackers)
 		}
 	}
 
@@ -92,5 +111,9 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 
 	func updateCategories(_ categories: [TrackerCategory]) {
 		self.categories = categories
+	}
+
+	func updateSearchText(_ text: String) {
+		 self.searchText = text
 	}
 }

@@ -17,4 +17,5 @@ protocol TrackersPresenterProtocol {
 	func isTrackerCompleted(_ tracker: Tracker) -> Bool
 	func completedCount(for tracker: Tracker) -> Int
 	func updateCategories(_ categories: [TrackerCategory])
+	func updateSearchText(_ text: String)
 }
