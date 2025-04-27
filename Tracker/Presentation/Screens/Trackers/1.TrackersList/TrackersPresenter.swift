@@ -32,6 +32,10 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 
 	var onChange: (() -> Void)?
 
+	var isTrackerActionEnabled: Bool {
+		!(Calendar.current.startOfDay(for: currentDate) > Calendar.current.startOfDay(for: Date()))
+	}
+
 	var visibleTrackers: [TrackerCategory] {
 		let currentWeekDay = WeekDay.from(date: currentDate)
 

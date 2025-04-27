@@ -176,7 +176,8 @@ extension TrackersViewController: UICollectionViewDataSource {
 				self?.presenter.toggleCompletion(for: tracker)
 				self?.collectionView.reloadItems(at: [indexPath])
 			},
-			isCompleted: isCompleted
+			isCompleted: isCompleted,
+			isActive: presenter.isTrackerActionEnabled
 		)
 		return cell
 	}

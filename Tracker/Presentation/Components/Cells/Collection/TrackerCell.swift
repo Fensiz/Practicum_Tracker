@@ -97,7 +97,7 @@ final class TrackerCell: UICollectionViewCell {
 
 	// MARK: - Public Methods
 
-	func configure(with tracker: Tracker, count: Int, action: @escaping () -> Void, isCompleted: Bool) {
+	func configure(with tracker: Tracker, count: Int, action: @escaping () -> Void, isCompleted: Bool, isActive: Bool) {
 		self.isCompleted = isCompleted
 		self.trackerColor = tracker.color
 
@@ -106,6 +106,7 @@ final class TrackerCell: UICollectionViewCell {
 		topContainerView.backgroundColor = tracker.color
 		addButton.backgroundColor = tracker.color
 		countLabel.text = daysText(count)
+		addButton.isEnabled = isActive
 
 		addButton.addAction(UIAction { [weak self] _ in
 			action()
