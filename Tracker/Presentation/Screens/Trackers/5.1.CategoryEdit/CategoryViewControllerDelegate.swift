@@ -7,6 +7,5 @@
 
 protocol CategoryViewControllerDelegate: AnyObject {
 	func categoryExists(with title: String) -> Bool
-	func didAddNewCategory(with title: String)
-	func didEditCategory(with oldTitle: String, newTitle: String)
+	func didFinish(with title: String, mode: CategoryViewController.Mode)
 }

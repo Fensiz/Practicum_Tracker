@@ -99,7 +99,7 @@ final class CategorySelectionViewController: BaseViewController {
 	private func addCategoryTapped() {
 		let newCategoryVC = CategoryViewController(mode: .creation)
 		newCategoryVC.delegate = self
-		
+
 		present(newCategoryVC, animated: true)
 	}
 
@@ -127,7 +127,7 @@ final class CategorySelectionViewController: BaseViewController {
 	private func editCategory(at indexPath: IndexPath) {
 		let oldCategory = categories[indexPath.row]
 
-		let editCategoryVC = CategoryViewController(mode: .editing(initText: oldCategory.title))
+		let editCategoryVC = CategoryViewController(mode: .editing(initialText: oldCategory.title))
 		editCategoryVC.delegate = self
 
 		present(editCategoryVC, animated: true)
@@ -139,7 +139,16 @@ extension CategorySelectionViewController: CategoryViewControllerDelegate {
 		categories.contains { $0.title.caseInsensitiveCompare(title) == .orderedSame }
 	}
 
-	func didAddNewCategory(with title: String) {
+	func didFinish(with title: String, mode: CategoryViewController.Mode) {
+		switch mode {
+			case .editing(let oldTitle):
+				didEditCategory(with: oldTitle, newTitle: title)
+			case .creation:
+				didAddNewCategory(with: title)
+		}
+	}
+
+	private func didAddNewCategory(with title: String) {
 		let newCategory = TrackerCategory(title: title, trackers: [])
 		categories.append(newCategory)
 
@@ -158,7 +167,7 @@ extension CategorySelectionViewController: CategoryViewControllerDelegate {
 		})
 	}
 
-	func didEditCategory(with oldTitle: String, newTitle: String) {
+	private func didEditCategory(with oldTitle: String, newTitle: String) {
 		guard let index = categories.firstIndex(where: { $0.title == oldTitle }) else { return }
 		let oldCategory = categories[index]
 		let updatedCategory = TrackerCategory(title: newTitle, trackers: oldCategory.trackers)

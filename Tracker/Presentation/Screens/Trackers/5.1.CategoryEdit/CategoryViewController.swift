@@ -8,51 +8,56 @@
 import UIKit
 
 final class CategoryViewController: BaseViewController {
-
+	
+	// MARK: - Types
+	
 	enum Mode {
 		case creation
-		case editing(initText: String)
+		case editing(initialText: String)
 	}
-
-	init(mode: Mode) {
-		self.mode = mode
-		super.init(nibName: nil, bundle: nil)
-	}
-
-	required init?(coder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
-	}
-
-	private var mode: Mode
+	
+	// MARK: - Properties
+	
 	weak var delegate: CategoryViewControllerDelegate?
-
+	private var mode: Mode
+	
+	// MARK: - UI Elements
+	
 	private lazy var textField: UITextField = {
 		let tf = PaddedTextField(placeholder: "Введите название категории")
 		tf.addAction(UIAction { [weak self] _ in self?.textFieldEditingChanged() }, for: .editingChanged)
 		return tf
 	}()
-
+	
 	private lazy var createButton: UIButton = {
-		let name: String
+		let title: String
 		switch mode {
 			case .creation:
-				name = "Создать"
+				title = "Создать"
 			case .editing:
-				name = "Готово"
+				title = "Готово"
 		}
-		let button = AppButton(title: name)
+		let button = AppButton(title: title)
 		button.addAction(UIAction { [weak self] _ in self?.createButtonTapped() }, for: .touchUpInside)
 		return button
 	}()
-
-	private func textFieldEditingChanged() {
-		let trimmedText = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-		let isUnique = !(delegate?.categoryExists(with: trimmedText) ?? false)
-		createButton.isEnabled = !trimmedText.isEmpty && isUnique
+	
+	// MARK: - Init
+	
+	init(mode: Mode) {
+		self.mode = mode
+		super.init(nibName: nil, bundle: nil)
 	}
-
+	
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+	
+	// MARK: - Lifecycle
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		
 		switch mode {
 			case .creation:
 				screenTitle = "Новая категория"
@@ -60,40 +65,48 @@ final class CategoryViewController: BaseViewController {
 				screenTitle = "Редактирование категории"
 				setInitialText(text)
 		}
+		
 		view.backgroundColor = .systemBackground
 		setupLayout()
 		textFieldEditingChanged()
 	}
-
+	
+	// MARK: - Actions
+	
+	private func createButtonTapped() {
+		if let title = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+		   !title.isEmpty {
+			delegate?.didFinish(with: title, mode: mode)
+		}
+		dismiss(animated: true)
+	}
+	
+	// MARK: - Private
+	
+	private func textFieldEditingChanged() {
+		let trimmedText = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+		let isUnique = !(delegate?.categoryExists(with: trimmedText) ?? true)
+		createButton.isEnabled = !trimmedText.isEmpty && isUnique
+	}
+	
 	private func setupLayout() {
 		view.addSubview(textField)
 		view.addSubview(createButton)
-
+		
 		NSLayoutConstraint.activate([
 			textField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: Constants.mediumPadding),
 			textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.commonPadding),
 			textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.commonPadding),
 			textField.heightAnchor.constraint(equalToConstant: Constants.commonHeight),
-
+			
 			createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.commonPadding),
 			createButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.mediumPadding),
 			createButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.mediumPadding),
 			createButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight)
 		])
 	}
-
-	private func createButtonTapped() {
-		guard let newTitle = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !newTitle.isEmpty else { return }
-		switch mode {
-			case .creation:
-				delegate?.didAddNewCategory(with: newTitle)
-			case .editing(let title):
-				delegate?.didEditCategory(with: title, newTitle: newTitle)
-		}
-		dismiss(animated: true)
-	}
-
-	func setInitialText(_ text: String) {
+	
+	private func setInitialText(_ text: String) {
 		textField.text = text
 		textFieldEditingChanged()
 	}
