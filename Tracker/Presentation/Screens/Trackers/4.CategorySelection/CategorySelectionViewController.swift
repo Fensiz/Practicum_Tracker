@@ -99,27 +99,7 @@ final class CategorySelectionViewController: BaseViewController {
 	private func addCategoryTapped() {
 		let newCategoryVC = CategoryViewController(mode: .creation)
 		newCategoryVC.delegate = self
-		newCategoryVC.onCategoryCreated = { [weak self] categoryName in
-			guard let self else { return }
-			let newCategory = TrackerCategory(title: categoryName, trackers: [])
-			self.categories.append(newCategory)
-
-			let newIndexPath = IndexPath(row: self.categories.count - 1, section: 0)
-
-			self.tableView.performBatchUpdates({
-				self.tableView.insertRows(at: [newIndexPath], with: .automatic)
-			}, completion: { _ in
-				self.updateUI()
-
-				// Перезагружаем предыдущую предпоследнюю ячейку (если была), чтобы правильно обновить её разделитель
-				if self.categories.count > 1 {
-					let previousIndexPath = IndexPath(row: self.categories.count - 2, section: 0)
-					self.tableView.reloadRows(at: [previousIndexPath], with: .none)
-				}
-			})
-
-			print(self.categories)
-		}
+		
 		present(newCategoryVC, animated: true)
 	}
 
@@ -147,32 +127,50 @@ final class CategorySelectionViewController: BaseViewController {
 	private func editCategory(at indexPath: IndexPath) {
 		let oldCategory = categories[indexPath.row]
 
-		let editCategoryVC = CategoryViewController(mode: .editing)
+		let editCategoryVC = CategoryViewController(mode: .editing(initText: oldCategory.title))
 		editCategoryVC.delegate = self
-		editCategoryVC.onCategoryCreated = { [weak self] newTitle in
-			guard let self else { return }
-
-			let updatedCategory = TrackerCategory(title: newTitle, trackers: oldCategory.trackers)
-			self.categories[indexPath.row] = updatedCategory
-
-			// Если редактируемая категория была выбрана — обновляем ссылку
-			if self.selectedCategory == oldCategory {
-				self.selectedCategory = updatedCategory
-			}
-
-			self.tableView.reloadRows(at: [indexPath], with: .automatic)
-		}
-
-		editCategoryVC.loadViewIfNeeded()
-		editCategoryVC.setInitialText(oldCategory.title)
 
 		present(editCategoryVC, animated: true)
 	}
 }
 
-extension CategorySelectionViewController: NewCategoryViewControllerDelegate {
+extension CategorySelectionViewController: CategoryViewControllerDelegate {
 	func categoryExists(with title: String) -> Bool {
 		categories.contains { $0.title.caseInsensitiveCompare(title) == .orderedSame }
+	}
+
+	func didAddNewCategory(with title: String) {
+		let newCategory = TrackerCategory(title: title, trackers: [])
+		categories.append(newCategory)
+
+		let newIndexPath = IndexPath(row: categories.count - 1, section: 0)
+
+		tableView.performBatchUpdates({
+			tableView.insertRows(at: [newIndexPath], with: .automatic)
+		}, completion: { _ in
+			self.updateUI()
+
+			// Перезагружаем предыдущую предпоследнюю ячейку (если была), чтобы правильно обновить её разделитель
+			if self.categories.count > 1 {
+				let previousIndexPath = IndexPath(row: self.categories.count - 2, section: 0)
+				self.tableView.reloadRows(at: [previousIndexPath], with: .none)
+			}
+		})
+	}
+
+	func didEditCategory(with oldTitle: String, newTitle: String) {
+		guard let index = categories.firstIndex(where: { $0.title == oldTitle }) else { return }
+		let oldCategory = categories[index]
+		let updatedCategory = TrackerCategory(title: newTitle, trackers: oldCategory.trackers)
+		categories[index] = updatedCategory
+
+		// Если редактируемая категория была выбрана — обновляем ссылку
+		if selectedCategory == oldCategory {
+			selectedCategory = updatedCategory
+		}
+
+		let indexPath = IndexPath(row: index, section: 0)
+		tableView.reloadRows(at: [indexPath], with: .automatic)
 	}
 }
 

@@ -5,14 +5,13 @@
 //  Created by Симонов Иван Дмитриевич on 25.04.2025.
 //
 
-
 import UIKit
 
 final class CategoryViewController: BaseViewController {
 
 	enum Mode {
 		case creation
-		case editing
+		case editing(initText: String)
 	}
 
 	init(mode: Mode) {
@@ -25,9 +24,7 @@ final class CategoryViewController: BaseViewController {
 	}
 
 	private var mode: Mode
-	var onCategoryCreated: ((String) -> Void)?
-
-	weak var delegate: NewCategoryViewControllerDelegate?
+	weak var delegate: CategoryViewControllerDelegate?
 
 	private lazy var textField: UITextField = {
 		let tf = PaddedTextField(placeholder: "Введите название категории")
@@ -59,8 +56,9 @@ final class CategoryViewController: BaseViewController {
 		switch mode {
 			case .creation:
 				screenTitle = "Новая категория"
-			case .editing:
+			case .editing(let text):
 				screenTitle = "Редактирование категории"
+				setInitialText(text)
 		}
 		view.backgroundColor = .systemBackground
 		setupLayout()
@@ -72,21 +70,26 @@ final class CategoryViewController: BaseViewController {
 		view.addSubview(createButton)
 
 		NSLayoutConstraint.activate([
-			textField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-			textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-			textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-			textField.heightAnchor.constraint(equalToConstant: 75),
+			textField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: Constants.mediumPadding),
+			textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.commonPadding),
+			textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.commonPadding),
+			textField.heightAnchor.constraint(equalToConstant: Constants.commonHeight),
 
-			createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-			createButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-			createButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-			createButton.heightAnchor.constraint(equalToConstant: 60)
+			createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.commonPadding),
+			createButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.mediumPadding),
+			createButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.mediumPadding),
+			createButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight)
 		])
 	}
 
 	private func createButtonTapped() {
-		guard let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return }
-		onCategoryCreated?(text)
+		guard let newTitle = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !newTitle.isEmpty else { return }
+		switch mode {
+			case .creation:
+				delegate?.didAddNewCategory(with: newTitle)
+			case .editing(let title):
+				delegate?.didEditCategory(with: title, newTitle: newTitle)
+		}
 		dismiss(animated: true)
 	}
 
