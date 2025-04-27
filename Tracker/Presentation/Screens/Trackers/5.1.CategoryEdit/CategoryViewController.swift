@@ -8,8 +8,23 @@
 
 import UIKit
 
-final class NewCategoryViewController: BaseViewController {
+final class CategoryViewController: BaseViewController {
 
+	enum Mode {
+		case creation
+		case editing
+	}
+
+	init(mode: Mode) {
+		self.mode = mode
+		super.init(nibName: nil, bundle: nil)
+	}
+
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+
+	private var mode: Mode
 	var onCategoryCreated: ((String) -> Void)?
 
 	weak var delegate: NewCategoryViewControllerDelegate?
@@ -21,7 +36,14 @@ final class NewCategoryViewController: BaseViewController {
 	}()
 
 	private lazy var createButton: UIButton = {
-		let button = AppButton(title: "Создать")
+		let name: String
+		switch mode {
+			case .creation:
+				name = "Создать"
+			case .editing:
+				name = "Готово"
+		}
+		let button = AppButton(title: name)
 		button.addAction(UIAction { [weak self] _ in self?.createButtonTapped() }, for: .touchUpInside)
 		return button
 	}()
@@ -34,7 +56,12 @@ final class NewCategoryViewController: BaseViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		screenTitle = "Новая категория"
+		switch mode {
+			case .creation:
+				screenTitle = "Новая категория"
+			case .editing:
+				screenTitle = "Редактирование категории"
+		}
 		view.backgroundColor = .systemBackground
 		setupLayout()
 		textFieldEditingChanged()
@@ -61,5 +88,10 @@ final class NewCategoryViewController: BaseViewController {
 		guard let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return }
 		onCategoryCreated?(text)
 		dismiss(animated: true)
+	}
+
+	func setInitialText(_ text: String) {
+		textField.text = text
+		textFieldEditingChanged()
 	}
 }

@@ -97,7 +97,7 @@ final class CategorySelectionViewController: BaseViewController {
 	}
 
 	private func addCategoryTapped() {
-		let newCategoryVC = NewCategoryViewController()
+		let newCategoryVC = CategoryViewController(mode: .creation)
 		newCategoryVC.delegate = self
 		newCategoryVC.onCategoryCreated = { [weak self] categoryName in
 			guard let self else { return }
@@ -143,6 +143,31 @@ final class CategorySelectionViewController: BaseViewController {
 			}
 		}
 	}
+
+	private func editCategory(at indexPath: IndexPath) {
+		let oldCategory = categories[indexPath.row]
+
+		let editCategoryVC = CategoryViewController(mode: .editing)
+		editCategoryVC.delegate = self
+		editCategoryVC.onCategoryCreated = { [weak self] newTitle in
+			guard let self else { return }
+
+			let updatedCategory = TrackerCategory(title: newTitle, trackers: oldCategory.trackers)
+			self.categories[indexPath.row] = updatedCategory
+
+			// Если редактируемая категория была выбрана — обновляем ссылку
+			if self.selectedCategory == oldCategory {
+				self.selectedCategory = updatedCategory
+			}
+
+			self.tableView.reloadRows(at: [indexPath], with: .automatic)
+		}
+
+		editCategoryVC.loadViewIfNeeded()
+		editCategoryVC.setInitialText(oldCategory.title)
+
+		present(editCategoryVC, animated: true)
+	}
 }
 
 extension CategorySelectionViewController: NewCategoryViewControllerDelegate {
@@ -187,10 +212,17 @@ extension CategorySelectionViewController: UITableViewDataSource, UITableViewDel
 
 	func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
 		return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: nil) { [weak self] _ in
+			guard let self else { return nil }
+
 			let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
-				self?.deleteCategory(at: indexPath)
+				self.deleteCategory(at: indexPath)
 			}
-			return UIMenu(title: "", children: [deleteAction])
+
+			let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { _ in
+				self.editCategory(at: indexPath)
+			}
+
+			return UIMenu(title: "", children: [editAction, deleteAction])
 		}
 	}
 }

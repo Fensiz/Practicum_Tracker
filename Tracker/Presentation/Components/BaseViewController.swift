@@ -16,7 +16,7 @@ class BaseViewController: UIViewController {
 		}
 	}
 
-	lazy var titleLabel: UILabel = {
+	var titleLabel: UILabel = {
 		let label = UILabel()
 		label.font = .systemFont(ofSize: 16, weight: .medium)
 		label.tintColor = .black
