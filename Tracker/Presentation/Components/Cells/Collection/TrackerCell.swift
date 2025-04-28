@@ -75,6 +75,7 @@ final class TrackerCell: UICollectionViewCell {
 
 	private var isCompleted = false
 	private var trackerColor: UIColor = .black
+	private var buttonAction: (() -> Void)?
 
 	// MARK: - Lifecycle
 
@@ -93,6 +94,7 @@ final class TrackerCell: UICollectionViewCell {
 		addButton.setTitle(nil, for: .normal)
 		addButton.setImage(nil, for: .normal)
 		isCompleted = false
+		buttonAction = nil
 	}
 
 	// MARK: - Public Methods
@@ -108,11 +110,16 @@ final class TrackerCell: UICollectionViewCell {
 		countLabel.text = daysText(count)
 		addButton.isEnabled = isActive
 
-		addButton.addAction(UIAction { [weak self] _ in
-			action()
-			self?.updateUI()
-		}, for: .touchUpInside)
+		self.buttonAction = action
+		addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
 
+		updateUI()
+	}
+
+	// MARK: - Actions
+
+	@objc private func addButtonTapped() {
+		buttonAction?()
 		updateUI()
 	}
 

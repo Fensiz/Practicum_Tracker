@@ -46,13 +46,14 @@ final class ScheduleViewController: BaseViewController {
 		view.addSubview(tableView)
 	}
 
+	@objc private func doneButtonTapped() {
+		delegate?.didSelectDays(selectedDays)
+		dismiss(animated: true)
+	}
+
 	private func setupDoneButton() {
 		doneButton.translatesAutoresizingMaskIntoConstraints = false
-		doneButton.addAction(UIAction { [weak self] _ in
-			guard let self else { return }
-			self.delegate?.didSelectDays(selectedDays)
-			self.dismiss(animated: true)
-		}, for: .touchUpInside)
+		doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
 		view.addSubview(doneButton)
 	}
 

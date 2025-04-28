@@ -52,6 +52,17 @@ final class TrackersViewController: UIViewController {
 		updateEmptyState()
 	}
 
+	// MARK: - Actions
+
+
+	@objc private func addButtonTapped() {
+		showTrackerTypeSelection()
+	}
+
+	@objc private func datePickerValueChanged(_ sender: UIDatePicker) {
+		presenter.updateDate(sender.date)
+	}
+
 	// MARK: - Private Methods
 
 	private func setupUI() {
@@ -75,18 +86,16 @@ final class TrackersViewController: UIViewController {
 	private func setupNavigationBar() {
 		navigationController?.navigationBar.prefersLargeTitles = true
 
-		let addAction = UIAction { [weak self] _ in
-			self?.showTrackerTypeSelection()
-		}
-		navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .add, primaryAction: addAction)
+		let addButton = UIButton(type: .system)
+		addButton.setImage(UIImage(systemName: "plus"), for: .normal)
+		addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+		navigationItem.leftBarButtonItem = UIBarButtonItem(customView: addButton)
 		navigationItem.leftBarButtonItem?.tintColor = .black
 
 		let datePicker = UIDatePicker()
 		datePicker.datePickerMode = .date
 		datePicker.preferredDatePickerStyle = .compact
-		datePicker.addAction(UIAction { [weak self] _ in
-			self?.presenter.updateDate(datePicker.date)
-		}, for: .valueChanged)
+		datePicker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
 		navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
 
 		let searchController = UISearchController(searchResultsController: nil)
