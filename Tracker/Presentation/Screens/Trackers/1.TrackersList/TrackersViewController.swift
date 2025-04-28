@@ -87,6 +87,7 @@ final class TrackersViewController: UIViewController {
 		navigationController?.navigationBar.prefersLargeTitles = true
 
 		let addButton = UIButton(type: .system)
+		addButton.tintColor = .ypBlack
 		addButton.setImage(UIImage(systemName: "plus"), for: .normal)
 		addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
 		navigationItem.leftBarButtonItem = UIBarButtonItem(customView: addButton)

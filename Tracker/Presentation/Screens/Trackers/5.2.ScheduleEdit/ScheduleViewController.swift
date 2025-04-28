@@ -12,6 +12,8 @@ final class ScheduleViewController: BaseViewController {
 
 	private var selectedDays: Set<WeekDay>
 
+	private let scrollView = UIScrollView()
+	private let contentView = UIView()
 	private let tableView = UITableView()
 	private let doneButton = AppButton(title: "Готово")
 
@@ -28,9 +30,17 @@ final class ScheduleViewController: BaseViewController {
 		super.viewDidLoad()
 		screenTitle = "Расписание"
 
+		setupScrollView()
 		setupTableView()
 		setupDoneButton()
 		layoutUI()
+	}
+
+	private func setupScrollView() {
+		scrollView.translatesAutoresizingMaskIntoConstraints = false
+		contentView.translatesAutoresizingMaskIntoConstraints = false
+		view.addSubview(scrollView)
+		scrollView.addSubview(contentView)
 	}
 
 	private func setupTableView() {
@@ -41,9 +51,9 @@ final class ScheduleViewController: BaseViewController {
 		tableView.translatesAutoresizingMaskIntoConstraints = false
 		tableView.isScrollEnabled = false
 		tableView.backgroundColor = .ypCellBack
-		tableView.layer.cornerRadius = 16
+		tableView.layer.cornerRadius = Constants.cornerRadius
 		tableView.clipsToBounds = true
-		view.addSubview(tableView)
+		contentView.addSubview(tableView)
 	}
 
 	@objc private func doneButtonTapped() {
@@ -54,20 +64,32 @@ final class ScheduleViewController: BaseViewController {
 	private func setupDoneButton() {
 		doneButton.translatesAutoresizingMaskIntoConstraints = false
 		doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
-		view.addSubview(doneButton)
+		contentView.addSubview(doneButton)
 	}
 
 	private func layoutUI() {
 		NSLayoutConstraint.activate([
-			tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 30),
-			tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-			tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+			scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
+			scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+			scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+			scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+			contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+			contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+			contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+			contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+			contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+
+			tableView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+			tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+			tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 			tableView.heightAnchor.constraint(equalToConstant: Constants.tableViewCellHeight * 7),
 
-			doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-			doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-			doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-			doneButton.heightAnchor.constraint(equalToConstant: 60)
+			doneButton.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 24),
+			doneButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+			doneButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+			doneButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+			doneButton.heightAnchor.constraint(equalToConstant: 60),
 		])
 	}
 }
