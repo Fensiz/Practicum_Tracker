@@ -15,23 +15,17 @@ enum CollectionBlock {
 
 	var name: String {
 		switch self {
-		case .textField, .trackerOptions:
-			return ""
-		case .emoji:
-			return "Emoji"
-		case .color:
-			return "Цвет"
+			case .textField, .trackerOptions: ""
+			case .emoji: "Emoji"
+			case .color: "Цвет"
 		}
 	}
 
 	var itemsCount: Int {
 		switch self {
-		case .textField, .trackerOptions:
-			return 1
-		case .emoji(let emojis):
-			return emojis.count
-		case .color(let colors):
-			return colors.count
+			case .textField, .trackerOptions: 1
+			case .emoji(let emojis): emojis.count
+			case .color(let colors): colors.count
 		}
 	}
 }
