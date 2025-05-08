@@ -69,6 +69,7 @@ final class CategoryViewController: BaseViewController {
 		view.backgroundColor = .systemBackground
 		setupLayout()
 		textFieldEditingChanged()
+		textField.delegate = self
 	}
 	
 	// MARK: - Actions
@@ -109,5 +110,14 @@ final class CategoryViewController: BaseViewController {
 	private func setInitialText(_ text: String) {
 		textField.text = text
 		textFieldEditingChanged()
+	}
+}
+
+// MARK: - TextField Delegate
+
+extension CategoryViewController: UITextFieldDelegate {
+	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+		textField.resignFirstResponder()
+		return true
 	}
 }

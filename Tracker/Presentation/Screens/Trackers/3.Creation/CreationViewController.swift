@@ -223,6 +223,7 @@ final class CreationViewController: BaseViewController {
 			}
 			self?.validateForm()
 		}, for: .editingChanged)
+		textField.delegate = self
 
 		tableView.dataSource = self
 		tableView.delegate = self
@@ -531,5 +532,14 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 			case .color, .emoji:
 				UIEdgeInsets(top: 24, left: 18, bottom: 24, right: 18)
 		}
+	}
+}
+
+// MARK: - TextField Delegate
+
+extension CreationViewController: UITextFieldDelegate {
+	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+		textField.resignFirstResponder()
+		return true
 	}
 }
