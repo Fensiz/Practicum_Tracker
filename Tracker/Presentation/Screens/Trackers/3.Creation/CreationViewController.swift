@@ -97,7 +97,7 @@ final class CreationViewController: BaseViewController {
 
 		guard case .color(let colors) = collectionBlocks[sectionIndex],
 			  let index = colors.firstIndex(of: color) else { return nil }
-
+		
 		return IndexPath(item: index, section: sectionIndex)
 	}
 
@@ -206,10 +206,27 @@ final class CreationViewController: BaseViewController {
 
 	private func setupUI() {
 
-		textField.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
+		textField.addAction(UIAction { [weak self] _ in
+			let textCount = self?.textField.text?.count ?? 0
+			let nowTooLong = textCount > 38
+
+			if nowTooLong != self?.isTextTooLong {
+				self?.isTextTooLong = nowTooLong
+
+
+				if let index = self?.collectionBlocks.firstIndex(where: { if case .textField = $0 { return true } else { return false } }),
+				   let cell = self?.collectionView.cellForItem(at: IndexPath(item: 0, section: index)) as? TextFieldCell {
+					cell.updateWarningLabel(isHidden: !nowTooLong)
+				}
+
+				self?.collectionView.performBatchUpdates(nil)
+			}
+			self?.validateForm()
+		}, for: .editingChanged)
 
 		tableView.dataSource = self
 		tableView.delegate = self
+		tableView.register(TrackerCreationTableViewCell.self, forCellReuseIdentifier: "cell")
 		tableView.isScrollEnabled = false
 		tableView.backgroundColor = .ypCellBack
 		tableView.layer.cornerRadius = 16
@@ -229,8 +246,47 @@ final class CreationViewController: BaseViewController {
 		stackView.spacing = 8
 		stackView.distribution = .fillEqually
 
-		cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
-		saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+		cancelButton.addAction(UIAction { [weak self] _ in
+			guard let self else { return }
+			self.dismissRoot()
+		}, for: .touchUpInside)
+		saveButton.addAction(
+			UIAction { [weak self] _ in
+				guard let self else { return }
+				if let selectedTracker {
+					// TODO: - добавить реализацию редактирования
+//					guard let selectedColorIndex = self.selectedColorIndex,
+//						  let selectedEmojiIndex = self.selectedEmojiIndex,
+//						  case let .color(colors) = self.collectionBlocks[selectedColorIndex.section],
+//						  case let .emoji(emojis) = self.collectionBlocks[selectedEmojiIndex.section]
+//					else { return }
+//					let tracker = Tracker(
+//						id: selectedTracker.id,
+//						name: self.textField.text ?? "",
+//						color: colors[selectedColorIndex.row],
+//						emoji: emojis[selectedEmojiIndex.row],
+//						schedule: self.weekDays
+//					)
+//					updateTracker(tracker, inCategory: self.selectedCategory)
+				} else {
+					guard let selectedColorIndex = self.selectedColorIndex,
+						  let selectedEmojiIndex = self.selectedEmojiIndex,
+						  case let .color(colors) = self.collectionBlocks[selectedColorIndex.section],
+						  case let .emoji(emojis) = self.collectionBlocks[selectedEmojiIndex.section]
+					else { return }
+					let tracker = Tracker(
+						name: self.textField.text ?? "",
+						color: colors[selectedColorIndex.row],
+						emoji: emojis[selectedEmojiIndex.row],
+						schedule: trackerType == .habit ? self.weekDays : nil,
+						date: trackerType == .nonRegular ? currentDate : nil
+					)
+					self.addTracker(tracker, toCategory: self.selectedCategory)
+				}
+				self.delegate?.didCreateTrackerAndUpdate(categories: self.categories)
+				self.dismissRoot()
+			},
+			for: .touchUpInside)
 
 		[
 			//			textField, tableView,
@@ -261,49 +317,6 @@ final class CreationViewController: BaseViewController {
 			root = parent
 		}
 		root?.dismiss(animated: true)
-	}
-
-	@objc private func textFieldEditingChanged() {
-		let textCount = textField.text?.count ?? 0
-		let nowTooLong = textCount > 38
-
-		if nowTooLong != isTextTooLong {
-			isTextTooLong = nowTooLong
-
-			if let index = collectionBlocks.firstIndex(where: { if case .textField = $0 { return true } else { return false } }),
-			   let cell = collectionView.cellForItem(at: IndexPath(item: 0, section: index)) as? TextFieldCell {
-				cell.updateWarningLabel(isHidden: !nowTooLong)
-			}
-
-			collectionView.performBatchUpdates(nil)
-		}
-		validateForm()
-	}
-
-	@objc private func cancelButtonTapped() {
-		dismissRoot()
-	}
-
-	@objc private func saveButtonTapped() {
-		if let selectedTracker {
-			// TODO: добавить реализацию редактирования
-		} else {
-			guard let selectedColorIndex = selectedColorIndex,
-				  let selectedEmojiIndex = selectedEmojiIndex,
-				  case let .color(colors) = collectionBlocks[selectedColorIndex.section],
-				  case let .emoji(emojis) = collectionBlocks[selectedEmojiIndex.section]
-			else { return }
-			let tracker = Tracker(
-				name: textField.text ?? "",
-				color: colors[selectedColorIndex.row],
-				emoji: emojis[selectedEmojiIndex.row],
-				schedule: trackerType == .habit ? weekDays : nil,
-				date: trackerType == .nonRegular ? currentDate : nil
-			)
-			addTracker(tracker, toCategory: selectedCategory)
-		}
-		delegate?.didCreateTrackerAndUpdate(categories: categories)
-		dismissRoot()
 	}
 }
 
@@ -338,29 +351,23 @@ extension CreationViewController: UITableViewDataSource, UITableViewDelegate {
 	}
 
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-		var cell = tableView.dequeueReusableCell(withIdentifier: "cell")
-		if cell == nil {
-			cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-		}
-		guard let cell = cell else { return UITableViewCell() }
-
-		cell.backgroundColor = .clear
-		cell.textLabel?.text = trackerOptions[indexPath.row].title
+		let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+		var conf = cell.defaultContentConfiguration()
+		conf.text = trackerOptions[indexPath.row].title
 		if let description = trackerOptions[indexPath.row].value {
-			cell.detailTextLabel?.text = description
+			conf.secondaryText = description
 		}
-		cell.textLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-		cell.textLabel?.textColor = .black
-		cell.detailTextLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-		cell.detailTextLabel?.textColor = .ypGray
-		cell.accessoryType = .disclosureIndicator
-
+		conf.textProperties.font = .systemFont(ofSize: 17, weight: .regular)
+		conf.textProperties.color = .black
+		conf.secondaryTextProperties.font = .systemFont(ofSize: 17, weight: .regular)
+		conf.secondaryTextProperties.color = .ypGray
+		cell.contentConfiguration = conf
 		if indexPath.row == trackerOptions.count - 1 {
 			cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
 		} else {
 			cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
 		}
-
+		cell.accessoryType = .disclosureIndicator
 		return cell
 	}
 

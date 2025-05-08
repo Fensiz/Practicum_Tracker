@@ -80,7 +80,7 @@ final class CategorySelectionViewController: BaseViewController {
 	
 	private func setupAddButton() {
 		addButton.translatesAutoresizingMaskIntoConstraints = false
-		addButton.addTarget(self, action: #selector(addCategoryTapped), for: .touchUpInside)
+		addButton.addAction(UIAction { [weak self] _ in self?.addCategoryTapped() }, for: .touchUpInside)
 		view.addSubview(addButton)
 		
 		NSLayoutConstraint.activate([
@@ -105,7 +105,7 @@ final class CategorySelectionViewController: BaseViewController {
 		view.layoutIfNeeded()
 	}
 	
-	@objc private func addCategoryTapped() {
+	private func addCategoryTapped() {
 		let newCategoryVC = CategoryViewController(mode: .creation)
 		newCategoryVC.delegate = self
 		present(newCategoryVC, animated: true)

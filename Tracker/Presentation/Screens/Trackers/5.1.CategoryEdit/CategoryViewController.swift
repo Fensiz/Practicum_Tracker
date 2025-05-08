@@ -25,7 +25,7 @@ final class CategoryViewController: BaseViewController {
 	
 	private lazy var textField: UITextField = {
 		let tf = PaddedTextField(placeholder: "Введите название категории")
-		tf.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
+		tf.addAction(UIAction { [weak self] _ in self?.textFieldEditingChanged() }, for: .editingChanged)
 		return tf
 	}()
 	
@@ -38,7 +38,7 @@ final class CategoryViewController: BaseViewController {
 				title = "Готово"
 		}
 		let button = AppButton(title: title)
-		button.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+		button.addAction(UIAction { [weak self] _ in self?.createButtonTapped() }, for: .touchUpInside)
 		return button
 	}()
 	
@@ -72,8 +72,7 @@ final class CategoryViewController: BaseViewController {
 	}
 	
 	// MARK: - Actions
-
-	@objc
+	
 	private func createButtonTapped() {
 		if let title = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
 		   !title.isEmpty {
@@ -81,15 +80,14 @@ final class CategoryViewController: BaseViewController {
 		}
 		dismiss(animated: true)
 	}
-
-	@objc
+	
+	// MARK: - Private
+	
 	private func textFieldEditingChanged() {
 		let trimmedText = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 		let isUnique = !(delegate?.categoryExists(with: trimmedText) ?? true)
 		createButton.isEnabled = !trimmedText.isEmpty && isUnique
 	}
-
-	// MARK: - Private
 	
 	private func setupLayout() {
 		view.addSubview(textField)

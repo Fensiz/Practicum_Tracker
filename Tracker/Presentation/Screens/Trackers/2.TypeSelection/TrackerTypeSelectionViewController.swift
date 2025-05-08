@@ -13,13 +13,17 @@ final class TrackerTypeSelectionViewController: BaseViewController {
 
 	private lazy var createHabitButton: UIButton = {
 		let button = AppButton(title: "Привычка")
-		button.addTarget(self, action: #selector(didTapCreateHabit), for: .touchUpInside)
+		button.addAction(UIAction { [weak self] _ in
+			self?.createHabit()
+		}, for: .touchUpInside)
 		return button
 	}()
 
 	private lazy var createNonRegularEventButton: UIButton = {
 		let button = AppButton(title: "Нерегулярное событие")
-		button.addTarget(self, action: #selector(didTapCreateNonRegularEvent), for: .touchUpInside)
+		button.addAction(UIAction { [weak self] _ in
+			self?.createNonRegularEvent()
+		}, for: .touchUpInside)
 		return button
 	}()
 
@@ -67,13 +71,11 @@ final class TrackerTypeSelectionViewController: BaseViewController {
 		])
 	}
 
-	@objc
-	private func didTapCreateHabit() {
+	private func createHabit() {
 		delegate?.didSelectTrackerType(.habit, vc: self)
 	}
 
-	@objc
-	private func didTapCreateNonRegularEvent() {
+	private func createNonRegularEvent() {
 		delegate?.didSelectTrackerType(.nonRegular, vc: self)
 	}
 }

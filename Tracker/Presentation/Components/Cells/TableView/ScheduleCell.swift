@@ -66,13 +66,8 @@ final class ScheduleCell: UITableViewCell {
 	}
 
 	private func setupActions() {
-		toggle.addTarget(self, action: #selector(toggleValueChanged), for: .valueChanged)
-	}
-
-	@objc
-	private func toggleValueChanged() {
-		toggleAction?(toggle.isOn)
+		toggle.addAction(UIAction { [weak self] _ in
+			self?.toggleAction?(self?.toggle.isOn ?? false)
+		}, for: .valueChanged)
 	}
 }
-
-
