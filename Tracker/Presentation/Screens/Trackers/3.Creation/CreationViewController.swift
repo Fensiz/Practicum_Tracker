@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CreationViewController: BaseViewController {
+final class CreationViewController: BaseViewController {
 
 	private var trackerType: TrackerType
 	private var selectedEmojiIndex: IndexPath?
