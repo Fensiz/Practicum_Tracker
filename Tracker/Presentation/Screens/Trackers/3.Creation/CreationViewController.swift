@@ -454,8 +454,8 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 				resultCell = cell
 		}
 
-		//		resultCell.layer.borderWidth = 1
-		//		resultCell.layer.borderColor = UIColor.red.cgColor
+//				resultCell.layer.borderWidth = 1
+//				resultCell.layer.borderColor = UIColor.red.cgColor
 		return resultCell
 	}
 
@@ -491,7 +491,7 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 				return CGSize(width: collectionView.bounds.width, height: Constants.commonHeight * CGFloat(options.count))
 
 			case .emoji, .color:
-				return CGSize(width: 52, height: 52)
+				return CGSize(width: UIConstants.elementSize, height: UIConstants.elementSize)
 		}
 	}
 
@@ -530,7 +530,7 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 			case .textField, .trackerOptions:
 				UIEdgeInsets(top: 24, left: 0, bottom: 0, right: 0)
 			case .color, .emoji:
-				UIEdgeInsets(top: 24, left: 18, bottom: 24, right: 18)
+				UIEdgeInsets(top: 24, left: UIConstants.inset, bottom: 24, right: UIConstants.inset)
 		}
 	}
 }
