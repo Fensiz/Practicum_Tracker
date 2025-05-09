@@ -15,6 +15,10 @@ struct Tracker {
 	let schedule: Set<WeekDay>?
 	let date: Date?
 
+	var scheduleData: Data? {
+		try? JSONEncoder().encode(schedule)
+	}
+
 	init(id: UUID, name: String, color: UIColor, emoji: String, schedule: Set<WeekDay>?, date: Date?) {
 		self.id = id
 		self.name = name
