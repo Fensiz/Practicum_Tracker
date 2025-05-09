@@ -15,6 +15,7 @@ final class CreationViewController: BaseViewController {
 	private var selectedTracker: Tracker?
 	private var isTextTooLong = false
 	private var currentDate: Date?
+	private let repository: TrackerRepositoryProtocol
 
 	private let textField: UITextField = PaddedTextField(placeholder: "Введите название трекера")
 	private let tableView = UITableView(frame: .zero, style: .plain)
@@ -54,10 +55,8 @@ final class CreationViewController: BaseViewController {
 
 	private lazy var trackerOptions: [TrackerOption] = []
 
-
-	weak var delegate: CreationViewControllerDelegate?
-
 	init(
+		repository: TrackerRepositoryProtocol,
 		type: TrackerType,
 		categories: [TrackerCategory]? = nil,
 		selectedTracker: Tracker? = nil,
@@ -77,6 +76,7 @@ final class CreationViewController: BaseViewController {
 		}
 		self.trackerType = type
 		self.currentDate = currentDate
+		self.repository = repository
 
 		let layout = UICollectionViewFlowLayout()
 		layout.scrollDirection = .vertical
@@ -124,7 +124,14 @@ final class CreationViewController: BaseViewController {
 		trackerOptions.append(
 			TrackerOption(title: "Категория", value: selectedCategory?.title) 	{ [weak self] in
 				guard let self else { return UIViewController() }
-				let vc = CategorySelectionViewController(categories: self.categories, selectedCategory: selectedCategory)
+				let presenter = CategorySelectionPresenter(
+					repository: repository,
+					selected: selectedCategory
+				)
+				let vc = CategorySelectionViewController(
+					presenter: presenter
+				)
+				presenter.view = vc
 				vc.delegate = self
 				return vc
 			}
@@ -146,24 +153,20 @@ final class CreationViewController: BaseViewController {
 
 		setupUI()
 		layoutUI()
-		screenTitle = "Создание трекера"
+		screenTitle = trackerType == .habit ? "Новая привычка" : "Новое нерегулярное событие"
 	}
 
 	func addTracker(_ tracker: Tracker, toCategory category: TrackerCategory?) {
-		guard
-			let category,
-			let index = categories.firstIndex(where: { $0.title == category.title }) else {
-			print("Категория не найдена")
+		guard let category else {
+			print("Категория не выбрана")
 			return
 		}
 
-		let oldCategory = categories[index]
-		let updatedCategory = TrackerCategory(
-			title: oldCategory.title,
-			trackers: oldCategory.trackers + [tracker]
-		)
-
-		categories[index] = updatedCategory
+		do {
+			try repository.addTracker(tracker, to: category)
+		} catch {
+			print("Ошибка при добавлении трекера: \(error)")
+		}
 	}
 
 	func updateTracker(_ updatedTracker: Tracker, inCategory category: TrackerCategory?) {
@@ -284,14 +287,13 @@ final class CreationViewController: BaseViewController {
 					)
 					self.addTracker(tracker, toCategory: self.selectedCategory)
 				}
-				self.delegate?.didCreateTrackerAndUpdate(categories: self.categories)
+//				self.delegate?.didCreateTrackerAndUpdate(categories: self.categories)
+//				self.delegate?.didCreateTracker()
 				self.dismissRoot()
 			},
 			for: .touchUpInside)
 
-		[
-			//			textField, tableView,
-			collectionView, stackView].forEach { view in
+		[collectionView, stackView].forEach { view in
 				view.translatesAutoresizingMaskIntoConstraints = false
 				self.view.addSubview(view)
 			}
@@ -339,7 +341,6 @@ extension CreationViewController: CategorySelectionDelegate {
 		trackerOptions[0].value = category.title
 		tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
 		self.selectedCategory = category
-		self.categories = categories
 		validateForm()
 	}
 }

@@ -10,7 +10,7 @@ import UIKit
 final class TrackersViewController: UIViewController {
 
 	// MARK: - Properties
-
+	private var contextMenuIndexPath: IndexPath?
 	private var presenter: TrackersPresenterProtocol
 
 	private lazy var collectionView: UICollectionView = {
@@ -33,7 +33,7 @@ final class TrackersViewController: UIViewController {
 
 	// MARK: - Init
 
-	init(presenter: TrackersPresenterProtocol = TrackersPresenter()) {
+	init(presenter: TrackersPresenterProtocol) {
 		self.presenter = presenter
 		super.init(nibName: nil, bundle: nil)
 	}
@@ -120,20 +120,12 @@ final class TrackersViewController: UIViewController {
 extension TrackersViewController: TrackerTypeSelectionDelegate {
 	func didSelectTrackerType(_ type: TrackerType, vc: UIViewController) {
 		let formVC = CreationViewController(
+			repository: presenter.repository,
 			type: type,
-			categories: presenter.categories,
+			categories: presenter.fetchCategories(),
 			currentDate: type == .nonRegular ? presenter.currentDate : nil
 		)
-		formVC.delegate = self
 		vc.present(formVC, animated: true)
-	}
-}
-
-// MARK: - CreationViewControllerDelegate
-
-extension TrackersViewController: CreationViewControllerDelegate {
-	func didCreateTrackerAndUpdate(categories: [TrackerCategory]) {
-		presenter.updateCategories(categories)
 	}
 }
 
@@ -167,6 +159,7 @@ extension TrackersViewController: UICollectionViewDataSource {
 		let tracker = presenter.visibleTrackers[indexPath.section].trackers[indexPath.item]
 		let isCompleted = presenter.isTrackerCompleted(tracker)
 		let count = presenter.completedCount(for: tracker)
+		print("🦊", tracker, isCompleted, count)
 
 		cell.configure(
 			with: tracker,
@@ -196,7 +189,67 @@ extension TrackersViewController: UICollectionViewDataSource {
 	}
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
+// MARK: - CV Delegate
+
+extension TrackersViewController: UICollectionViewDelegate {
+	// область выделения ячейки при открытии контекстного меню
+	func collectionView(
+		_ collectionView: UICollectionView,
+		previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+	) -> UITargetedPreview? {
+		guard
+			let indexPath = configuration.identifier as? IndexPath,
+			let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell
+		else {
+			return nil
+		}
+
+		let targetView = cell.contextPreviewView()
+		let parameters = UIPreviewParameters()
+		parameters.visiblePath = UIBezierPath(
+			roundedRect: targetView.bounds,
+			cornerRadius: 16
+		)
+		parameters.backgroundColor = .clear
+
+		return UITargetedPreview(view: targetView, parameters: parameters)
+	}
+
+	// область выделения ячейки при закрытии контекстного меню
+	func collectionView(
+		_ collectionView: UICollectionView,
+		previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+	) -> UITargetedPreview? {
+		self.collectionView(collectionView, previewForHighlightingContextMenuWithConfiguration: configuration)
+	}
+
+	// область ячейки отображаемая в контекстном меню
+	func collectionView(
+		_ collectionView: UICollectionView,
+		contextMenuConfigurationForItemAt indexPath: IndexPath,
+		point: CGPoint
+	) -> UIContextMenuConfiguration? {
+		let tracker = presenter.visibleTrackers[indexPath.section].trackers[indexPath.item]
+
+		return UIContextMenuConfiguration(
+			identifier: indexPath as NSCopying,
+			previewProvider: nil,
+			actionProvider: { _ in
+				let delete = UIAction(
+					title: "Удалить",
+					image: UIImage(systemName: "trash"),
+					attributes: .destructive
+				) { [weak self] _ in
+					self?.presenter.deleteTracker(tracker)
+				}
+				return UIMenu(title: "", children: [delete])
+			}
+		)
+	}
+}
+
+
+// MARK: - CV Delegate FlowLayout
 
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 	func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

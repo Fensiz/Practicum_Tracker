@@ -16,59 +16,41 @@ final class TrackerCategoryStore {
 		self.context = context
 	}
 
-	func add(_ category: TrackerCategory) throws {
-		let entity = TrackerCategoryEntity(context: context)
-		entity.title = category.title
+	func getOrCreateCategoryEntity(for title: String) throws -> TrackerCategoryEntity {
+		let request: NSFetchRequest<TrackerCategoryEntity> = TrackerCategoryEntity.fetchRequest()
+		request.predicate = NSPredicate(format: "title == %@", title)
 
-		try context.save()
+		if let existing = try context.fetch(request).first {
+			return existing
+		}
+
+		let newEntity = TrackerCategoryEntity(context: context)
+		newEntity.title = title
+
+		return newEntity
+	}
+
+	func getOrCreateCategoryEntity(for category: TrackerCategory) throws -> TrackerCategoryEntity {
+		try getOrCreateCategoryEntity(for: category.title)
+	}
+
+	func fetchAll() throws -> [TrackerCategoryEntity] {
+		let request = TrackerCategoryEntity.fetchRequest()
+		request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+		return try context.fetch(request)
 	}
 
 	func delete(_ category: TrackerCategory) throws {
-		let request = fetchRequest(for: category.title)
-		if let object = try context.fetch(request).first {
-			context.delete(object)
+		let request: NSFetchRequest<TrackerCategoryEntity> = TrackerCategoryEntity.fetchRequest()
+		request.predicate = NSPredicate(format: "title == %@", category.title)
+
+		if let entity = try context.fetch(request).first {
+			context.delete(entity)
 			try context.save()
 		}
 	}
 
-	func update(title oldTitle: String, to newTitle: String) throws {
-		let request = fetchRequest(for: oldTitle)
-		if let object = try context.fetch(request).first {
-			object.title = newTitle
-			try context.save()
-		}
-	}
-
-	func fetchAll() throws -> [TrackerCategory] {
-		let request = TrackerCategoryEntity.fetchRequest()
-		let result = try context.fetch(request)
-		return result.compactMap { category(from: $0) }
-	}
-
-	func makeFetchedResultsController() -> NSFetchedResultsController<TrackerCategoryEntity> {
-		let request = TrackerCategoryEntity.fetchRequest()
-		request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-
-		return NSFetchedResultsController(
-			fetchRequest: request,
-			managedObjectContext: context,
-			sectionNameKeyPath: nil,
-			cacheName: nil
-		)
-	}
-
-	private func fetchRequest(for title: String) -> NSFetchRequest<TrackerCategoryEntity> {
-		let request = TrackerCategoryEntity.fetchRequest()
-		request.predicate = NSPredicate(format: "title == %@", title)
-		return request
-	}
-
-	private func category(from entity: TrackerCategoryEntity) -> TrackerCategory? {
-		guard let title = entity.title else { return nil }
-
-		let trackers: [Tracker] = (entity.trackers as? Set<TrackerEntity>)?
-			.compactMap { TrackerStore(context: context).tracker(from: $0) } ?? []
-
-		return TrackerCategory(title: title, trackers: trackers)
+	func delete(_ category: TrackerCategoryEntity) {
+		context.delete(category)
 	}
 }

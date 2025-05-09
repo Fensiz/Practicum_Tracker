@@ -22,7 +22,9 @@ final class TabBarController: UITabBarController {
 			tabBar.scrollEdgeAppearance = appearance // без этой строки в iOS 15 не отображается разделитель
 		}
 
-		let presenter = TrackersPresenter()
+		let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+		let repository = TrackerRepository(context: context)
+		let presenter = TrackersPresenter(repository: repository)
 		let trackersViewController = UINavigationController(
 			rootViewController: TrackersViewController(presenter: presenter)
 		)

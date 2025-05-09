@@ -95,6 +95,17 @@ final class TrackerCell: UICollectionViewCell {
 		isCompleted = false
 	}
 
+	func contextPreviewView() -> UIView {
+		return topContainerView
+	}
+
+	func contextPreviewViewSnapshot() -> UIView {
+		let snapshot = topContainerView.snapshotView(afterScreenUpdates: false) ?? topContainerView
+		snapshot.layer.cornerRadius = 5
+		snapshot.layer.masksToBounds = true
+		return snapshot
+	}
+
 	// MARK: - Public Methods
 
 	func configure(with tracker: Tracker, count: Int, action: @escaping () -> Void, isCompleted: Bool, isActive: Bool) {

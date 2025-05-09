@@ -5,22 +5,19 @@
 //  Created by Симонов Иван Дмитриевич on 26.04.2025.
 //
 
-
 import UIKit
+import CoreData
 
-final class TrackersPresenter: TrackersPresenterProtocol {
+final class TrackersPresenter: NSObject, TrackersPresenterProtocol {
 
 	// MARK: - Properties
 
-	private(set) var categories: [TrackerCategory] {
-		didSet {
-			onChange?()
-		}
-	}
-	private var completedTrackers: Set<TrackerRecord>
+	private(set) var repository: TrackerRepository
+	private var fetchedResultsController: NSFetchedResultsController<TrackerEntity>!
+
 	private(set) var currentDate: Date {
 		didSet {
-			onChange?()
+			updateFetchedResultsController(for: currentDate)
 		}
 	}
 
@@ -37,58 +34,16 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 	}
 
 	var visibleTrackers: [TrackerCategory] {
-		let currentWeekDay = WeekDay.from(date: currentDate)
-
-		return categories.compactMap { category in
-			let filteredTrackers = category.trackers.filter { tracker in
-				let matchesSchedule: Bool
-				if let schedule = tracker.schedule {
-					matchesSchedule = schedule.contains(currentWeekDay)
-				} else if let trackerDate = tracker.date {
-					matchesSchedule = Calendar.current.isDate(trackerDate, inSameDayAs: currentDate)
-				} else {
-					matchesSchedule = false
-				}
-
-				let matchesSearch: Bool
-				if searchText.isEmpty {
-					matchesSearch = true
-				} else {
-					matchesSearch = tracker.name.lowercased().contains(searchText.lowercased())
-				}
-
-				return matchesSchedule && matchesSearch
-			}
-
-			return filteredTrackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filteredTrackers)
-		}
+		repository.visibleTrackers(searchText: searchText)
 	}
 
 	// MARK: - Init
 
-	init() {
-		self.categories = [
-			TrackerCategory(
-				title: "Домашний уют",
-				trackers: [Tracker(
-					name: "Поливать растения",
-					color: .systemTeal,
-					emoji: "😊",
-					schedule: [.friday]
-				)]
-			),
-			TrackerCategory(
-				title: "Радостные мелочи",
-				trackers: [Tracker(
-					name: "Кошка заслонила камеру на созвоне",
-					color: .ypRed,
-					emoji: "😊",
-					date: Date()
-				)]
-			)
-		]
-		self.completedTrackers = []
+	init(repository: TrackerRepository) {
+		self.repository = repository
 		self.currentDate = Date()
+		super.init()
+		updateFetchedResultsController(for: currentDate)
 	}
 
 	// MARK: - Public methods
@@ -97,30 +52,70 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 		currentDate = date
 	}
 
+	func updateSearchText(_ text: String) {
+		searchText = text
+		onChange?()
+	}
+
 	func toggleCompletion(for tracker: Tracker) {
-		let record = TrackerRecord(id: tracker.id, date: currentDate)
-		if completedTrackers.contains(record) {
-			completedTrackers.remove(record)
-		} else {
-			completedTrackers.insert(record)
+		do {
+			try repository.toggleRecord(for: tracker.id, on: currentDate)
+			onChange?()
+		} catch {
+			print("⚠️ Ошибка при переключении записи: \(error)")
 		}
 	}
 
 	func isTrackerCompleted(_ tracker: Tracker) -> Bool {
-		completedTrackers.contains {
-			$0.id == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate)
-		}
+		(doTry { try repository.isTrackerCompleted(tracker.id, on: currentDate) }) ?? false
 	}
 
 	func completedCount(for tracker: Tracker) -> Int {
-		completedTrackers.filter { $0.id == tracker.id }.count
+		(doTry { try repository.completedCount(for: tracker.id) }) ?? 0
 	}
 
-	func updateCategories(_ categories: [TrackerCategory]) {
-		self.categories = categories
+	func fetchCategories() -> [TrackerCategory] {
+		repository.fetchAllCategories()
 	}
 
-	func updateSearchText(_ text: String) {
-		 self.searchText = text
+	// MARK: - Private methods
+
+	private func updateFetchedResultsController(for date: Date) {
+		fetchedResultsController = repository.makeFetchedResultsController(for: date)
+		fetchedResultsController.delegate = self
+
+		do {
+			try fetchedResultsController.performFetch()
+			onChange?()
+		} catch {
+			print("❌ FetchedResultsController fetch error: \(error)")
+		}
+	}
+	func deleteTracker(_ tracker: Tracker) {
+		do {
+			try repository.deleteTracker(id: tracker.id)
+		} catch {
+			print("⚠️ Ошибка при удалении трекера: \(error)")
+		}
 	}
 }
+
+// MARK: - NSFetchedResultsControllerDelegate
+
+extension TrackersPresenter: NSFetchedResultsControllerDelegate {
+	func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+		onChange?()
+	}
+}
+
+// MARK: - Helpers
+
+private func doTry<T>(_ block: () throws -> T) -> T? {
+	do {
+		return try block()
+	} catch {
+		print("⚠️ Ошибка: \(error)")
+		return nil
+	}
+}
+

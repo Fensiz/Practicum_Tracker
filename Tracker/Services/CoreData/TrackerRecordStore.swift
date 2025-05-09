@@ -15,11 +15,19 @@ final class TrackerRecordStore {
 	init(context: NSManagedObjectContext) {
 		self.context = context
 	}
-	
+
 	func add(record: TrackerRecord) throws {
+		let request: NSFetchRequest<TrackerEntity> = TrackerEntity.fetchRequest()
+		request.predicate = NSPredicate(format: "id == %@", record.id as CVarArg)
+
+		guard let trackerEntity = try context.fetch(request).first else {
+			throw NSError(domain: "TrackerRecordStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Tracker not found"])
+		}
+
 		let entity = TrackerRecordEntity(context: context)
-		entity.id = record.id
 		entity.date = record.date
+		entity.tracker = trackerEntity
+
 		try context.save()
 	}
 
@@ -31,32 +39,51 @@ final class TrackerRecordStore {
 		}
 	}
 
-	func recordExists(trackerID: UUID, date: Date) throws -> Bool {
-		let request = fetchRequest(for: trackerID, date: date)
+	func contains(_ record: TrackerRecord) throws -> Bool {
+		let request = fetchRequest(for: record.id, date: record.date)
+		request.fetchLimit = 1
 		let count = try context.count(for: request)
 		return count > 0
 	}
 
-	func fetchAll() throws -> [TrackerRecord] {
-		let request = TrackerRecordEntity.fetchRequest()
-		let result = try context.fetch(request)
-		return result.compactMap { record(from: $0) }
+	func completedCount(for trackerID: UUID) throws -> Int {
+		let request = fetchRequest(for: trackerID)
+		return try context.count(for: request)
 	}
 
+	func fetchAll() throws -> [TrackerRecord] {
+		let request: NSFetchRequest<TrackerRecordEntity> = TrackerRecordEntity.fetchRequest()
+		let entities = try context.fetch(request)
+		return entities.compactMap { record(from: $0) }
+	}
+
+	// MARK: - Private
+
 	private func record(from entity: TrackerRecordEntity) -> TrackerRecord? {
-		guard let id = entity.id,
+		guard let tracker = entity.tracker,
+			  let id = tracker.id,
 			  let date = entity.date else {
 			return nil
 		}
 		return TrackerRecord(id: id, date: date)
 	}
 
-	private func fetchRequest(for trackerID: UUID, date: Date) -> NSFetchRequest<TrackerRecordEntity> {
-		let request = TrackerRecordEntity.fetchRequest()
-		request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-			NSPredicate(format: "id == %@", trackerID as CVarArg),
-			NSPredicate(format: "date == %@", date as CVarArg)
-		])
+	private func fetchRequest(for trackerID: UUID, date: Date? = nil) -> NSFetchRequest<TrackerRecordEntity> {
+		let request: NSFetchRequest<TrackerRecordEntity> = TrackerRecordEntity.fetchRequest()
+
+		var predicates: [NSPredicate] = [
+			NSPredicate(format: "tracker.id == %@", trackerID as CVarArg)
+		]
+
+		if let date {
+			let calendar = Calendar.current
+			let startOfDay = calendar.startOfDay(for: date)
+			let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+			predicates.append(NSPredicate(format: "date >= %@ AND date < %@", startOfDay as CVarArg, endOfDay as CVarArg))
+		}
+
+		request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
 		return request
 	}
 }
