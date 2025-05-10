@@ -15,13 +15,13 @@ protocol CategorySelectionViewProtocol: AnyObject {
 }
 
 final class CategorySelectionPresenter: CategorySelectionPresenterProtocol {
-	var delegate: CategorySelectionDelegate?
+	weak var delegate: CategorySelectionDelegate?
+	weak var view: CategorySelectionViewProtocol?
 
 	var numberOfCategories: Int {
 		categories.count
 	}
 
-	weak var view: CategorySelectionViewProtocol?
 	private let repository: TrackerRepositoryProtocol
 	private(set) var selectedCategory: TrackerCategory?
 	private var categories: [TrackerCategory] = []

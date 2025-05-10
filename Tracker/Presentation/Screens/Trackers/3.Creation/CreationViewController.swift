@@ -132,7 +132,8 @@ final class CreationViewController: BaseViewController {
 					presenter: presenter
 				)
 				presenter.view = vc
-				vc.delegate = self
+				presenter.delegate = self
+
 				return vc
 			}
 		)

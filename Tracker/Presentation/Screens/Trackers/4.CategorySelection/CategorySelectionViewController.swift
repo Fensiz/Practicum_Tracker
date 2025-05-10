@@ -14,11 +14,11 @@ final class CategorySelectionViewController: BaseViewController {
 	private let tableView = UITableView()
 	private let emptyView = TrackersEmptyView(text: "Привычки и события можно объединить по смыслу")
 	private let addButton = AppButton(title: "Добавить категорию")
+	private let scrollView = UIScrollView()
+	private let contentView = UIView()
 
 	private let presenter: CategorySelectionPresenterProtocol
 	private var tableViewHeightConstraint: NSLayoutConstraint?
-
-	weak var delegate: CategorySelectionDelegate?
 
 	// MARK: - Init
 
@@ -37,9 +37,7 @@ final class CategorySelectionViewController: BaseViewController {
 		super.viewDidLoad()
 		screenTitle = "Категория"
 
-		setupAddButton()
-		setupTableView()
-		setupEmptyView()
+		setupUI()
 		presenter.viewDidLoad()
 		firstUpdateUI()
 		tableView.reloadData()
@@ -47,47 +45,52 @@ final class CategorySelectionViewController: BaseViewController {
 
 	// MARK: - Setup
 
-	private func setupTableView() {
-		tableView.translatesAutoresizingMaskIntoConstraints = false
+	private func setupUI() {
+		[scrollView, contentView, tableView, emptyView, addButton].forEach { view in
+			view.translatesAutoresizingMaskIntoConstraints = false
+		}
+
+		addButton.addAction(UIAction { [weak self] _ in self?.addCategoryTapped() }, for: .touchUpInside)
+
 		tableView.dataSource = self
 		tableView.delegate = self
 		tableView.backgroundColor = .ypCellBack
 		tableView.layer.cornerRadius = Constants.cornerRadius
 		tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-		view.addSubview(tableView)
+
+		view.addSubview(emptyView)
+		view.addSubview(scrollView)
+		scrollView.addSubview(contentView)
+		contentView.addSubview(tableView)
+		contentView.addSubview(addButton)
 
 		NSLayoutConstraint.activate([
-			tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: Constants.mediumPadding),
-			tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.commonPadding),
-			tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.commonPadding),
-			tableView.bottomAnchor.constraint(lessThanOrEqualTo: addButton.topAnchor, constant: -Constants.mediumPadding),
-		])
+			scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
+			scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+			scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+			scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
+			contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+			contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+			contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+			contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+			contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+
+			tableView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+			tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+			tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+
+			emptyView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+			emptyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+			addButton.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 24),
+			addButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+			addButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+			addButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+			addButton.heightAnchor.constraint(equalToConstant: 60),
+		])
 		tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.tableViewCellHeight * CGFloat(presenter.numberOfCategories))
 		tableViewHeightConstraint?.isActive = true
-	}
-
-	private func setupEmptyView() {
-		emptyView.translatesAutoresizingMaskIntoConstraints = false
-		view.addSubview(emptyView)
-
-		NSLayoutConstraint.activate([
-			emptyView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-			emptyView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-		])
-	}
-
-	private func setupAddButton() {
-		addButton.translatesAutoresizingMaskIntoConstraints = false
-		addButton.addAction(UIAction { [weak self] _ in self?.addCategoryTapped() }, for: .touchUpInside)
-		view.addSubview(addButton)
-
-		NSLayoutConstraint.activate([
-			addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.mediumPadding),
-			addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.mediumPadding),
-			addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Constants.commonPadding),
-			addButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight)
-		])
 	}
 
 	// MARK: - Private Methods
