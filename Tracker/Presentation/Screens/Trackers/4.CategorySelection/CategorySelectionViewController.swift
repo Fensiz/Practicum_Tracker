@@ -62,13 +62,12 @@ final class CategorySelectionViewController: BaseViewController {
 		view.addSubview(scrollView)
 		scrollView.addSubview(contentView)
 		contentView.addSubview(tableView)
-		contentView.addSubview(addButton)
+		view.addSubview(addButton)
 
 		NSLayoutConstraint.activate([
 			scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
 			scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
 			scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-			scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
 			contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
 			contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
@@ -79,14 +78,15 @@ final class CategorySelectionViewController: BaseViewController {
 			tableView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
 			tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
 			tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+			tableView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
 
 			emptyView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 			emptyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 
-			addButton.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 24),
-			addButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
-			addButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-			addButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+			addButton.topAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: 24),
+			addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+			addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+			addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 			addButton.heightAnchor.constraint(equalToConstant: 60),
 		])
 		tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.tableViewCellHeight * CGFloat(presenter.numberOfCategories))

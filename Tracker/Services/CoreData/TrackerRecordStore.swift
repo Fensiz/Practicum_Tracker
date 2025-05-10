@@ -17,16 +17,16 @@ final class TrackerRecordStore {
 	}
 
 	func add(record: TrackerRecord) throws {
-		let request: NSFetchRequest<TrackerEntity> = TrackerEntity.fetchRequest()
+		let request: NSFetchRequest<TrackerCDEntity> = TrackerCDEntity.fetchRequest()
 		request.predicate = NSPredicate(format: "id == %@", record.id as CVarArg)
 
-		guard let trackerEntity = try context.fetch(request).first else {
+		guard let TrackerCDEntity = try context.fetch(request).first else {
 			throw NSError(domain: "TrackerRecordStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Tracker not found"])
 		}
 
-		let entity = TrackerRecordEntity(context: context)
+		let entity = TrackerRecordCDEntity(context: context)
 		entity.date = record.date
-		entity.tracker = trackerEntity
+		entity.tracker = TrackerCDEntity
 
 		try context.save()
 	}
@@ -52,14 +52,14 @@ final class TrackerRecordStore {
 	}
 
 	func fetchAll() throws -> [TrackerRecord] {
-		let request: NSFetchRequest<TrackerRecordEntity> = TrackerRecordEntity.fetchRequest()
+		let request: NSFetchRequest<TrackerRecordCDEntity> = TrackerRecordCDEntity.fetchRequest()
 		let entities = try context.fetch(request)
 		return entities.compactMap { record(from: $0) }
 	}
 
 	// MARK: - Private
 
-	private func record(from entity: TrackerRecordEntity) -> TrackerRecord? {
+	private func record(from entity: TrackerRecordCDEntity) -> TrackerRecord? {
 		guard let tracker = entity.tracker,
 			  let id = tracker.id,
 			  let date = entity.date else {
@@ -68,8 +68,8 @@ final class TrackerRecordStore {
 		return TrackerRecord(id: id, date: date)
 	}
 
-	private func fetchRequest(for trackerID: UUID, date: Date? = nil) -> NSFetchRequest<TrackerRecordEntity> {
-		let request: NSFetchRequest<TrackerRecordEntity> = TrackerRecordEntity.fetchRequest()
+	private func fetchRequest(for trackerID: UUID, date: Date? = nil) -> NSFetchRequest<TrackerRecordCDEntity> {
+		let request: NSFetchRequest<TrackerRecordCDEntity> = TrackerRecordCDEntity.fetchRequest()
 
 		var predicates: [NSPredicate] = [
 			NSPredicate(format: "tracker.id == %@", trackerID as CVarArg)

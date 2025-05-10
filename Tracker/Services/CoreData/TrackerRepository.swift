@@ -18,7 +18,7 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 	private let recordStore: TrackerRecordStore
 	weak var delegate: TrackersPresenterDelegate!
 
-	private var fetchedResultsController: NSFetchedResultsController<TrackerEntity>?
+	private var fetchedResultsController: NSFetchedResultsController<TrackerCDEntity>?
 
 	// MARK: - Init
 
@@ -35,7 +35,7 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 		guard let sections = fetchedResultsController?.sections else { return [] }
 
 		return sections.compactMap { section in
-			guard let trackerEntities = section.objects as? [TrackerEntity] else { return nil }
+			guard let trackerEntities = section.objects as? [TrackerCDEntity] else { return nil }
 
 			let trackers = trackerEntities
 				.compactMap { trackerStore.tracker(from: $0) }
@@ -56,16 +56,16 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 
 
 	func updateTracker(_ tracker: Tracker, in newCategory: TrackerCategory) throws {
-		let trackerEntity = try trackerStore.fetchEntity(by: tracker.id)
+		let TrackerCDEntity = try trackerStore.fetchEntity(by: tracker.id)
 
-		trackerEntity.name = tracker.name
-		trackerEntity.emoji = tracker.emoji
-		trackerEntity.colorHex = tracker.color.toHex()
-		trackerEntity.schedule = tracker.scheduleString
+		TrackerCDEntity.name = tracker.name
+		TrackerCDEntity.emoji = tracker.emoji
+		TrackerCDEntity.colorHex = tracker.color.toHex()
+		TrackerCDEntity.schedule = tracker.scheduleString
 
-		if trackerEntity.category?.title != newCategory.title {
+		if TrackerCDEntity.category?.title != newCategory.title {
 			let newCategoryEntity = try categoryStore.getOrCreateCategoryEntity(for: newCategory)
-			trackerEntity.category = newCategoryEntity
+			TrackerCDEntity.category = newCategoryEntity
 		}
 
 		try saveContext()
@@ -84,7 +84,7 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 			let categoryEntities = try categoryStore.fetchAll()
 			return categoryEntities.compactMap { entity in
 				guard let title = entity.title else { return nil }
-				let trackerEntities = entity.trackers as? Set<TrackerEntity> ?? []
+				let trackerEntities = entity.trackers as? Set<TrackerCDEntity> ?? []
 				let trackers = trackerEntities.compactMap { trackerStore.tracker(from: $0) }
 				return TrackerCategory(title: title, trackers: trackers)
 			}
@@ -99,10 +99,10 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 		return self.category(from: category)
 	}
 
-	func category(from entity: TrackerCategoryEntity) -> TrackerCategory? {
+	func category(from entity: TrackerCategoryCDEntity) -> TrackerCategory? {
 		guard let title = entity.title else { return nil }
 
-		let trackers: [Tracker] = (entity.trackers as? Set<TrackerEntity>)?.compactMap {
+		let trackers: [Tracker] = (entity.trackers as? Set<TrackerCDEntity>)?.compactMap {
 			trackerStore.tracker(from: $0)
 		} ?? []
 
@@ -165,8 +165,8 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 
 	// MARK: - Private Methods
 
-	private func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerEntity> {
-		let request: NSFetchRequest<TrackerEntity> = TrackerEntity.fetchRequest()
+	private func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerCDEntity> {
+		let request: NSFetchRequest<TrackerCDEntity> = TrackerCDEntity.fetchRequest()
 
 		let calendar = Calendar.current
 		let startOfDay = calendar.startOfDay(for: date)

@@ -16,8 +16,8 @@ final class TrackerStore {
 		self.context = context
 	}
 
-	func add(_ tracker: Tracker, to categoryEntity: TrackerCategoryEntity?) throws {
-		let entity = TrackerEntity(context: context)
+	func add(_ tracker: Tracker, to categoryEntity: TrackerCategoryCDEntity?) throws {
+		let entity = TrackerCDEntity(context: context)
 		entity.id = tracker.id
 		entity.name = tracker.name
 		entity.emoji = tracker.emoji
@@ -34,8 +34,8 @@ final class TrackerStore {
 		}
 	}
 
-	func deleteTrackers(in categoryEntity: TrackerCategoryEntity) {
-		guard let trackers = categoryEntity.trackers as? Set<TrackerEntity>, !trackers.isEmpty else {
+	func deleteTrackers(in categoryEntity: TrackerCategoryCDEntity) {
+		guard let trackers = categoryEntity.trackers as? Set<TrackerCDEntity>, !trackers.isEmpty else {
 			return
 		}
 
@@ -44,7 +44,7 @@ final class TrackerStore {
 		}
 	}
 
-	func tracker(from entity: TrackerEntity) -> Tracker? {
+	func tracker(from entity: TrackerCDEntity) -> Tracker? {
 		guard let id = entity.id,
 			  let name = entity.name,
 			  let emoji = entity.emoji,
@@ -72,7 +72,7 @@ final class TrackerStore {
 		)
 	}
 	
-	func fetchEntity(by id: UUID) throws -> TrackerEntity {
+	func fetchEntity(by id: UUID) throws -> TrackerCDEntity {
 		let request = fetchRequest(for: id)
 		let results = try context.fetch(request)
 		guard let entity = results.first else {
@@ -81,8 +81,8 @@ final class TrackerStore {
 		return entity
 	}
 
-	private func fetchRequest(for id: UUID) -> NSFetchRequest<TrackerEntity> {
-		let request = TrackerEntity.fetchRequest()
+	private func fetchRequest(for id: UUID) -> NSFetchRequest<TrackerCDEntity> {
+		let request = TrackerCDEntity.fetchRequest()
 		request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
 		return request
 	}
