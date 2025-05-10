@@ -19,15 +19,6 @@ struct Tracker {
 		guard let schedule else { return nil }
 		return schedule.map { "\($0.rawValue)" }.joined(separator: ",")
 	}
-//	var scheduleRaw: NSArray? {
-//		guard let schedule else { return nil }
-//		let result = schedule.map { $0.rawValue } as [Int]
-//		print(result)
-//		return result as NSArray
-//	}
-//	var scheduleRaw: [Int]? {
-//		schedule?.map { $0.rawValue }
-//	}
 
 	init(id: UUID, name: String, color: UIColor, emoji: String, schedule: Set<WeekDay>?, date: Date?) {
 		self.id = id

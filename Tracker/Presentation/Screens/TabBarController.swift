@@ -25,6 +25,7 @@ final class TabBarController: UITabBarController {
 		let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 		let repository = TrackerRepository(context: context)
 		let presenter = TrackersPresenter(repository: repository)
+		repository.delegate = presenter
 		let trackersViewController = UINavigationController(
 			rootViewController: TrackersViewController(presenter: presenter)
 		)

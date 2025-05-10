@@ -24,23 +24,6 @@ final class CreationViewController: BaseViewController {
 	private let saveButton = AppButton(title: "Сохранить")
 	private var stackView: UIStackView!
 
-	private lazy var collectionBlocks: [CollectionBlock] = [
-		.textField,
-		.trackerOptions(trackerOptions),
-		.emoji([
-			"🙂", "😻", "🌺", "🐶", "❤️", "😱",
-			"😇", "😡", "🥶", "🤔", "🙌", "🍔",
-			"🥦", "🏓", "🥇", "🎸", "🏝️", "😪"
-		]),
-		.color([
-			.systemRed, .systemBlue, .systemGreen, .systemOrange, .systemPurple, .systemTeal,
-			.systemPink, .ypCellBack, .systemYellow, .systemBrown, .systemIndigo, .ypBlue,
-			.systemRed.withAlphaComponent(0.5), .systemBlue.withAlphaComponent(0.5), .systemGreen.withAlphaComponent(0.5),
-			.systemOrange.withAlphaComponent(0.5), .systemPurple.withAlphaComponent(0.5), .systemTeal.withAlphaComponent(0.5)
-		])
-	]
-
-	private var categories: [TrackerCategory] = []
 	private var selectedCategory: TrackerCategory?
 	private var weekDays: Set<WeekDay>?
 	private var daysString: String {
@@ -53,19 +36,17 @@ final class CreationViewController: BaseViewController {
 		}
 	}
 
-	private lazy var trackerOptions: [TrackerOption] = []
+	private let presenter: CreationViewPresenterProtocol
 
 	init(
+		presenter: CreationViewPresenterProtocol,
 		repository: TrackerRepositoryProtocol,
 		type: TrackerType,
-		categories: [TrackerCategory]? = nil,
 		selectedTracker: Tracker? = nil,
 		selectedCategory: TrackerCategory? = nil,
 		currentDate: Date? = nil
 	) {
-		if let categories {
-			self.categories = categories
-		}
+		self.presenter = presenter
 		if let selectedCategory {
 			self.selectedCategory = selectedCategory
 		}
@@ -90,24 +71,34 @@ final class CreationViewController: BaseViewController {
 	}
 
 	private func getIndexPath(for color: UIColor) -> IndexPath? {
-		guard let sectionIndex = collectionBlocks.firstIndex(where: {
+		guard let sectionIndex = presenter.collectionBlocks.firstIndex(where: {
 			if case .color = $0 { return true }
 			return false
 		}) else { return nil }
 
-		guard case .color(let colors) = collectionBlocks[sectionIndex],
-			  let index = colors.firstIndex(of: color) else { return nil }
-		
-		return IndexPath(item: index, section: sectionIndex)
+		guard case .color(let colors) = presenter.collectionBlocks[sectionIndex] else {
+			return nil
+		}
+
+		let targetHex = color.toHex()
+
+		// Сравнение по HEX-строке
+		for (index, colorItem) in colors.enumerated() {
+			if colorItem.toHex() == targetHex {
+				return IndexPath(item: index, section: sectionIndex)
+			}
+		}
+
+		return nil
 	}
 
 	private func getIndexPath(for emoji: String) -> IndexPath? {
-		guard let sectionIndex = collectionBlocks.firstIndex(where: {
+		guard let sectionIndex = presenter.collectionBlocks.firstIndex(where: {
 			if case .emoji = $0 { return true }
 			return false
 		}) else { return nil }
 
-		guard case .emoji(let emojis) = collectionBlocks[sectionIndex],
+		guard case .emoji(let emojis) = presenter.collectionBlocks[sectionIndex],
 			  let index = emojis.firstIndex(of: emoji) else { return nil }
 
 		return IndexPath(item: index, section: sectionIndex)
@@ -121,7 +112,7 @@ final class CreationViewController: BaseViewController {
 		super.viewDidLoad()
 		view.backgroundColor = .white
 
-		trackerOptions.append(
+		presenter.trackerOptions.append(
 			TrackerOption(title: "Категория", value: selectedCategory?.title) 	{ [weak self] in
 				guard let self else { return UIViewController() }
 				let presenter = CategorySelectionPresenter(
@@ -138,7 +129,7 @@ final class CreationViewController: BaseViewController {
 			}
 		)
 		if trackerType == .habit {
-			trackerOptions.append(
+			presenter.trackerOptions.append(
 				TrackerOption(title: "Расписание", value: daysString) { [weak self] in
 					guard let self else { return UIViewController() }
 					let vc = ScheduleViewController(days: self.weekDays)
@@ -155,6 +146,7 @@ final class CreationViewController: BaseViewController {
 		setupUI()
 		layoutUI()
 		screenTitle = trackerType == .habit ? "Новая привычка" : "Новое нерегулярное событие"
+		screenTitle = selectedTracker != nil ? "Создание привычки" : screenTitle
 	}
 
 	func addTracker(_ tracker: Tracker, toCategory category: TrackerCategory?) {
@@ -171,28 +163,16 @@ final class CreationViewController: BaseViewController {
 	}
 
 	func updateTracker(_ updatedTracker: Tracker, inCategory category: TrackerCategory?) {
-		guard
-			let category,
-			let categoryIndex = categories.firstIndex(where: { $0.title == category.title }) else {
-			print("Категория не найдена")
+		guard let category else {
+			print("Категория не выбрана")
 			return
 		}
 
-		var trackers = categories[categoryIndex].trackers
-
-		guard let trackerIndex = trackers.firstIndex(where: { $0.id == updatedTracker.id }) else {
-			print("Трекер не найден в категории")
-			return
+		do {
+			try repository.updateTracker(updatedTracker, in: category)
+		} catch {
+			print("Ошибка при обновлении трекера: \(error)")
 		}
-
-		trackers[trackerIndex] = updatedTracker
-
-		let updatedCategory = TrackerCategory(
-			title: category.title,
-			trackers: trackers
-		)
-
-		categories[categoryIndex] = updatedCategory
 	}
 
 	private func validateForm() {
@@ -218,7 +198,7 @@ final class CreationViewController: BaseViewController {
 				self?.isTextTooLong = nowTooLong
 
 
-				if let index = self?.collectionBlocks.firstIndex(where: { if case .textField = $0 { return true } else { return false } }),
+				if let index = self?.presenter.collectionBlocks.firstIndex(where: { if case .textField = $0 { return true } else { return false } }),
 				   let cell = self?.collectionView.cellForItem(at: IndexPath(item: 0, section: index)) as? TextFieldCell {
 					cell.updateWarningLabel(isHidden: !nowTooLong)
 				}
@@ -260,31 +240,32 @@ final class CreationViewController: BaseViewController {
 				guard let self else { return }
 				if let selectedTracker {
 					// TODO: - добавить реализацию редактирования
-//					guard let selectedColorIndex = self.selectedColorIndex,
-//						  let selectedEmojiIndex = self.selectedEmojiIndex,
-//						  case let .color(colors) = self.collectionBlocks[selectedColorIndex.section],
-//						  case let .emoji(emojis) = self.collectionBlocks[selectedEmojiIndex.section]
-//					else { return }
-//					let tracker = Tracker(
-//						id: selectedTracker.id,
-//						name: self.textField.text ?? "",
-//						color: colors[selectedColorIndex.row],
-//						emoji: emojis[selectedEmojiIndex.row],
-//						schedule: self.weekDays
-//					)
-//					updateTracker(tracker, inCategory: self.selectedCategory)
+					guard let selectedColorIndex = self.selectedColorIndex,
+						  let selectedEmojiIndex = self.selectedEmojiIndex,
+						  case let .color(colors) = self.presenter.collectionBlocks[selectedColorIndex.section],
+						  case let .emoji(emojis) = self.presenter.collectionBlocks[selectedEmojiIndex.section]
+					else { return }
+					let tracker = Tracker(
+						id: selectedTracker.id,
+						name: self.textField.text ?? "",
+						color: colors[selectedColorIndex.row],
+						emoji: emojis[selectedEmojiIndex.row],
+						schedule: self.trackerType == .habit ? self.weekDays : nil,
+						date: self.trackerType == .nonRegular ? self.currentDate : nil
+					)
+					updateTracker(tracker, inCategory: self.selectedCategory)
 				} else {
 					guard let selectedColorIndex = self.selectedColorIndex,
 						  let selectedEmojiIndex = self.selectedEmojiIndex,
-						  case let .color(colors) = self.collectionBlocks[selectedColorIndex.section],
-						  case let .emoji(emojis) = self.collectionBlocks[selectedEmojiIndex.section]
+						  case let .color(colors) = self.presenter.collectionBlocks[selectedColorIndex.section],
+						  case let .emoji(emojis) = self.presenter.collectionBlocks[selectedEmojiIndex.section]
 					else { return }
 					let tracker = Tracker(
 						name: self.textField.text ?? "",
 						color: colors[selectedColorIndex.row],
 						emoji: emojis[selectedEmojiIndex.row],
-						schedule: trackerType == .habit ? self.weekDays : nil,
-						date: trackerType == .nonRegular ? currentDate : nil
+						schedule: self.trackerType == .habit ? self.weekDays : nil,
+						date: self.trackerType == .nonRegular ? self.currentDate : nil
 					)
 					self.addTracker(tracker, toCategory: self.selectedCategory)
 				}
@@ -329,7 +310,7 @@ final class CreationViewController: BaseViewController {
 extension CreationViewController: ScheduleViewControllerDelegate {
 	func didSelectDays(_ days: Set<WeekDay>) {
 		self.weekDays = days
-		trackerOptions[1].value = daysString
+		presenter.trackerOptions[1].value = daysString
 		tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
 		validateForm()
 	}
@@ -339,7 +320,7 @@ extension CreationViewController: ScheduleViewControllerDelegate {
 
 extension CreationViewController: CategorySelectionDelegate {
 	func didSelectCategory(_ category: TrackerCategory, _ categories: [TrackerCategory]) {
-		trackerOptions[0].value = category.title
+		presenter.trackerOptions[0].value = category.title
 		tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
 		self.selectedCategory = category
 		validateForm()
@@ -350,14 +331,14 @@ extension CreationViewController: CategorySelectionDelegate {
 
 extension CreationViewController: UITableViewDataSource, UITableViewDelegate {
 	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		trackerOptions.count
+		presenter.trackerOptions.count
 	}
 
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 		let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
 		var conf = cell.defaultContentConfiguration()
-		conf.text = trackerOptions[indexPath.row].title
-		if let description = trackerOptions[indexPath.row].value {
+		conf.text = presenter.trackerOptions[indexPath.row].title
+		if let description = presenter.trackerOptions[indexPath.row].value {
 			conf.secondaryText = description
 		}
 		conf.textProperties.font = .systemFont(ofSize: 17, weight: .regular)
@@ -365,7 +346,7 @@ extension CreationViewController: UITableViewDataSource, UITableViewDelegate {
 		conf.secondaryTextProperties.font = .systemFont(ofSize: 17, weight: .regular)
 		conf.secondaryTextProperties.color = .ypGray
 		cell.contentConfiguration = conf
-		if indexPath.row == trackerOptions.count - 1 {
+		if indexPath.row == presenter.trackerOptions.count - 1 {
 			cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
 		} else {
 			cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
@@ -375,7 +356,7 @@ extension CreationViewController: UITableViewDataSource, UITableViewDelegate {
 	}
 
 	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-		let vc = trackerOptions[indexPath.row].controllerProvider()
+		let vc = presenter.trackerOptions[indexPath.row].controllerProvider()
 		present(vc, animated: true)
 		tableView.deselectRow(at: indexPath, animated: true)
 	}
@@ -392,19 +373,19 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 	// MARK: Section - колличество
 
 	func numberOfSections(in collectionView: UICollectionView) -> Int {
-		return collectionBlocks.count
+		return presenter.collectionBlocks.count
 	}
 
 	// MARK: Cell - колличество
 
 	func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-		return collectionBlocks[section].itemsCount
+		return presenter.collectionBlocks[section].itemsCount
 	}
 
 	// MARK: Cell
 
 	func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-		let block = collectionBlocks[indexPath.section]
+		let block = presenter.collectionBlocks[indexPath.section]
 		let resultCell: UICollectionViewCell
 
 		switch block {
@@ -464,7 +445,7 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 	//MARK: Cell - didSelect
 
 	func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-		switch collectionBlocks[indexPath.section] {
+		switch presenter.collectionBlocks[indexPath.section] {
 			case .emoji:
 				selectedEmojiIndex = indexPath
 				collectionView.reloadData()
@@ -481,7 +462,7 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 	// MARK: Layout - размеры ячейки
 
 	func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-		let block = collectionBlocks[indexPath.section]
+		let block = presenter.collectionBlocks[indexPath.section]
 
 		switch block {
 			case .textField:
@@ -502,7 +483,7 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 			  let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as? SectionHeaderView else {
 			return UICollectionReusableView()
 		}
-		header.configure(with: collectionBlocks[indexPath.section].name)
+		header.configure(with: presenter.collectionBlocks[indexPath.section].name)
 		return header
 	}
 
@@ -513,7 +494,7 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 		layout collectionViewLayout: UICollectionViewLayout,
 		referenceSizeForHeaderInSection section: Int
 	) -> CGSize {
-		let title = collectionBlocks[section].name
+		let title = presenter.collectionBlocks[section].name
 		if title.isEmpty {
 			return .zero
 		} else {
@@ -528,7 +509,7 @@ extension CreationViewController: UICollectionViewDataSource, UICollectionViewDe
 		layout collectionViewLayout: UICollectionViewLayout,
 		insetForSectionAt section: Int
 	) -> UIEdgeInsets {
-		switch collectionBlocks[section] {
+		switch presenter.collectionBlocks[section] {
 			case .textField, .trackerOptions:
 				UIEdgeInsets(top: 24, left: 0, bottom: 0, right: 0)
 			case .color, .emoji:

@@ -7,21 +7,6 @@
 
 import CoreData
 
-protocol TrackerRepositoryProtocol {
-	func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerEntity>
-	func visibleTrackers(searchText: String) -> [TrackerCategory]
-	func addTracker(_ tracker: Tracker, to category: TrackerCategory) throws
-	func deleteTracker(id: UUID) throws
-	func fetchAllCategories() -> [TrackerCategory]
-	func addCategory(_ category: TrackerCategory) throws
-	func deleteCategory(_ category: TrackerCategory) throws
-	func toggleRecord(for trackerID: UUID, on date: Date) throws
-	func isTrackerCompleted(_ trackerID: UUID, on date: Date) throws -> Bool
-	func completedCount(for trackerID: UUID) throws -> Int
-	func getCategory(by title: String) throws -> TrackerCategory?
-	func editCategoryTitle(from old: TrackerCategory, to newTitle: String) throws
-}
-
 final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 
 	// MARK: - Private Stores
@@ -31,6 +16,7 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 	private let trackerStore: TrackerStore
 	private let categoryStore: TrackerCategoryStore
 	private let recordStore: TrackerRecordStore
+	weak var delegate: TrackersPresenterDelegate!
 
 	private var fetchedResultsController: NSFetchedResultsController<TrackerEntity>?
 
@@ -50,16 +36,13 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 
 		return sections.compactMap { section in
 			guard let trackerEntities = section.objects as? [TrackerEntity] else { return nil }
-			print("💄",trackerEntities)
 
 			let trackers = trackerEntities
 				.compactMap { trackerStore.tracker(from: $0) }
 				.filter { searchText.isEmpty || $0.name.lowercased().contains(searchText.lowercased()) }
 
-			print("🥲", trackers)
 			guard !trackers.isEmpty else { return nil }
 
-			print("🐱", trackers, section.name)
 			return TrackerCategory(title: section.name, trackers: trackers)
 		}
 	}
@@ -67,6 +50,23 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 	func addTracker(_ tracker: Tracker, to category: TrackerCategory) throws {
 		let categoryEntity = try categoryStore.getOrCreateCategoryEntity(for: category)
 		try trackerStore.add(tracker, to: categoryEntity)
+
+		try saveContext()
+	}
+
+
+	func updateTracker(_ tracker: Tracker, in newCategory: TrackerCategory) throws {
+		let trackerEntity = try trackerStore.fetchEntity(by: tracker.id)
+
+		trackerEntity.name = tracker.name
+		trackerEntity.emoji = tracker.emoji
+		trackerEntity.colorHex = tracker.color.toHex()
+		trackerEntity.schedule = tracker.scheduleString
+
+		if trackerEntity.category?.title != newCategory.title {
+			let newCategoryEntity = try categoryStore.getOrCreateCategoryEntity(for: newCategory)
+			trackerEntity.category = newCategoryEntity
+		}
 
 		try saveContext()
 	}
@@ -150,12 +150,27 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 		try saveContext()
 	}
 
-	func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerEntity> {
+	func startObservingTrackers(for date: Date) {
+		let frc = makeFetchedResultsController(for: date)
+		frc.delegate = self
+
+		do {
+			try frc.performFetch()
+			self.fetchedResultsController = frc
+			self.delegate?.trackerStoreDidChangeContent()
+		} catch {
+			print("❌ Failed to fetch trackers: \(error)")
+		}
+	}
+
+	// MARK: - Private Methods
+
+	private func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerEntity> {
 		let request: NSFetchRequest<TrackerEntity> = TrackerEntity.fetchRequest()
 
 		let calendar = Calendar.current
 		let startOfDay = calendar.startOfDay(for: date)
-		print(startOfDay)
+
 		let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 		let weekdayRaw = WeekDay.from(date: date).rawValue
 
@@ -179,5 +194,11 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 		if context.hasChanges {
 			try context.save()
 		}
+	}
+}
+
+extension TrackerRepository: NSFetchedResultsControllerDelegate {
+	func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+		delegate?.trackerStoreDidChangeContent()
 	}
 }

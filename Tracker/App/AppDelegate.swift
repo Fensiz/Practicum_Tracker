@@ -11,20 +11,7 @@ import CoreData
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
-//		ValueTransformer.setValueTransformer(
-//			WeekDayArrayTransformer(),
-//			forName: WeekDayArrayTransformer.name
-//		)
-		let container = persistentContainer
-		let context = container.viewContext
-//		resetCoreData()
-
-		if let entity = NSEntityDescription.entity(forEntityName: "TrackerEntity", in: context),
-		   let attr = entity.attributesByName["schedule"] {
-			print("✅ schedule.transformerName = \(attr.valueTransformerName ?? "nil")")
-		}
-		return true
+		true
 	}
 
 	// MARK: UISceneSession Lifecycle
@@ -64,26 +51,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 			}
 		}
 	}
-//
-//	func resetCoreData() {
-//		let storeCoordinator = persistentContainer.persistentStoreCoordinator
-//
-//		for store in storeCoordinator.persistentStores {
-//			if let url = store.url {
-//				do {
-//					try storeCoordinator.destroyPersistentStore(at: url, ofType: store.type, options: nil)
-//				} catch {
-//					print("Ошибка при удалении стора: \(error)")
-//				}
-//			}
-//		}
-//
-//		// Перезагрузить persistent stores заново
-//		persistentContainer = NSPersistentContainer(name: "TrackerModel")
-//		persistentContainer.loadPersistentStores { _, error in
-//			if let error = error {
-//				fatalError("Unresolved error \(error)")
-//			}
-//		}
-//	}
 }

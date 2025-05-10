@@ -71,6 +71,15 @@ final class TrackerStore {
 			date: entity.date
 		)
 	}
+	
+	func fetchEntity(by id: UUID) throws -> TrackerEntity {
+		let request = fetchRequest(for: id)
+		let results = try context.fetch(request)
+		guard let entity = results.first else {
+			throw NSError(domain: "TrackerNotFound", code: 404, userInfo: nil)
+		}
+		return entity
+	}
 
 	private func fetchRequest(for id: UUID) -> NSFetchRequest<TrackerEntity> {
 		let request = TrackerEntity.fetchRequest()

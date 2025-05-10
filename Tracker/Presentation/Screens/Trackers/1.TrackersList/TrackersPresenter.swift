@@ -6,18 +6,17 @@
 //
 
 import UIKit
-import CoreData
 
-final class TrackersPresenter: NSObject, TrackersPresenterProtocol {
+
+final class TrackersPresenter: TrackersPresenterProtocol {
 
 	// MARK: - Properties
 
 	private(set) var repository: TrackerRepository
-	private var fetchedResultsController: NSFetchedResultsController<TrackerEntity>!
 
 	private(set) var currentDate: Date {
 		didSet {
-			updateFetchedResultsController(for: currentDate)
+			repository.startObservingTrackers(for: currentDate)
 		}
 	}
 
@@ -42,8 +41,7 @@ final class TrackersPresenter: NSObject, TrackersPresenterProtocol {
 	init(repository: TrackerRepository) {
 		self.repository = repository
 		self.currentDate = Date()
-		super.init()
-		updateFetchedResultsController(for: currentDate)
+		self.repository.startObservingTrackers(for: currentDate)
 	}
 
 	// MARK: - Public methods
@@ -78,19 +76,6 @@ final class TrackersPresenter: NSObject, TrackersPresenterProtocol {
 		repository.fetchAllCategories()
 	}
 
-	// MARK: - Private methods
-
-	private func updateFetchedResultsController(for date: Date) {
-		fetchedResultsController = repository.makeFetchedResultsController(for: date)
-		fetchedResultsController.delegate = self
-
-		do {
-			try fetchedResultsController.performFetch()
-			onChange?()
-		} catch {
-			print("❌ FetchedResultsController fetch error: \(error)")
-		}
-	}
 	func deleteTracker(_ tracker: Tracker) {
 		do {
 			try repository.deleteTracker(id: tracker.id)
@@ -98,24 +83,19 @@ final class TrackersPresenter: NSObject, TrackersPresenterProtocol {
 			print("⚠️ Ошибка при удалении трекера: \(error)")
 		}
 	}
+
+	private func doTry<T>(_ block: () throws -> T) -> T? {
+		do {
+			return try block()
+		} catch {
+			print("⚠️ Ошибка: \(error)")
+			return nil
+		}
+	}
 }
 
-// MARK: - NSFetchedResultsControllerDelegate
-
-extension TrackersPresenter: NSFetchedResultsControllerDelegate {
-	func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+extension TrackersPresenter: TrackersPresenterDelegate {
+	func trackerStoreDidChangeContent() {
 		onChange?()
 	}
 }
-
-// MARK: - Helpers
-
-private func doTry<T>(_ block: () throws -> T) -> T? {
-	do {
-		return try block()
-	} catch {
-		print("⚠️ Ошибка: \(error)")
-		return nil
-	}
-}
-

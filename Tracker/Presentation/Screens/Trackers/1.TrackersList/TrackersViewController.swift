@@ -119,12 +119,14 @@ final class TrackersViewController: UIViewController {
 
 extension TrackersViewController: TrackerTypeSelectionDelegate {
 	func didSelectTrackerType(_ type: TrackerType, vc: UIViewController) {
+		let cpresenter = CreationViewPresenter()
 		let formVC = CreationViewController(
+			presenter: cpresenter,
 			repository: presenter.repository,
 			type: type,
-			categories: presenter.fetchCategories(),
 			currentDate: type == .nonRegular ? presenter.currentDate : nil
 		)
+		
 		vc.present(formVC, animated: true)
 	}
 }
@@ -159,7 +161,6 @@ extension TrackersViewController: UICollectionViewDataSource {
 		let tracker = presenter.visibleTrackers[indexPath.section].trackers[indexPath.item]
 		let isCompleted = presenter.isTrackerCompleted(tracker)
 		let count = presenter.completedCount(for: tracker)
-		print("🦊", tracker, isCompleted, count)
 
 		cell.configure(
 			with: tracker,
@@ -237,12 +238,30 @@ extension TrackersViewController: UICollectionViewDelegate {
 			actionProvider: { _ in
 				let delete = UIAction(
 					title: "Удалить",
-					image: UIImage(systemName: "trash"),
+					image: nil,
 					attributes: .destructive
 				) { [weak self] _ in
 					self?.presenter.deleteTracker(tracker)
 				}
-				return UIMenu(title: "", children: [delete])
+				let edit = UIAction(
+					title: "Редактировать",
+					image: nil
+				) { [weak self] _ in
+					guard let self else { return }
+					let trackerCategory = self.presenter.visibleTrackers[indexPath.section]
+
+					let editPresenter = CreationViewPresenter()
+					let editVC = CreationViewController(
+						presenter: editPresenter,
+						repository: self.presenter.repository,
+						type: tracker.schedule == nil ? .nonRegular : .habit,
+						selectedTracker: tracker,
+						selectedCategory: trackerCategory,
+						currentDate: self.presenter.currentDate
+					)
+					self.present(editVC, animated: true)
+				}
+				return UIMenu(title: "", children: [edit, delete])
 			}
 		)
 	}
