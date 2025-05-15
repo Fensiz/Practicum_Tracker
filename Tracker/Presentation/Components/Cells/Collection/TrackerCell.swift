@@ -40,7 +40,7 @@ final class TrackerCell: UICollectionViewCell {
 	private let countLabel: UILabel = {
 		let label = UILabel()
 		label.font = .ypMedium12
-		label.textColor = .label
+		label.textColor = .ypBlack
 		return label
 	}()
 
@@ -56,8 +56,8 @@ final class TrackerCell: UICollectionViewCell {
 	private let addButton: UIButton = {
 		let button = UIButton(type: .system)
 		button.titleLabel?.font = .ypRegular17
-		button.tintColor = .white
-		button.backgroundColor = .black
+		button.tintColor = .ypWhite
+		button.backgroundColor = .ypBlack
 		button.layer.cornerRadius = Constants.trackerCellAddButtonSize / 2
 		button.layer.masksToBounds = true
 		return button

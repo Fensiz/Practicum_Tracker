@@ -56,6 +56,7 @@ final class CategorySelectionViewController: BaseViewController {
 		tableView.delegate = self
 		tableView.backgroundColor = .ypCellBack
 		tableView.layer.cornerRadius = Constants.cornerRadius
+		tableView.separatorColor = .ypGray
 		tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
 
 		view.addSubview(emptyView)

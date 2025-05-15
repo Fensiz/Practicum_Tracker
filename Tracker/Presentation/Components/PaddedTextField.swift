@@ -18,7 +18,14 @@ final class PaddedTextField: UITextField {
 		self.textPadding = textPadding
 		super.init(frame: .zero)
 
-		self.placeholder = placeholder
+		if let placeholder = placeholder {
+			self.attributedPlaceholder = NSAttributedString(
+				string: placeholder,
+				attributes: [
+					.foregroundColor: UIColor.ypGray
+				]
+			)
+		}
 		translatesAutoresizingMaskIntoConstraints = false
 		backgroundColor = .ypCellBack
 		layer.cornerRadius = 16

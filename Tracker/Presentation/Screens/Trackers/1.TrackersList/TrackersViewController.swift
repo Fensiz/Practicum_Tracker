@@ -78,21 +78,35 @@ final class TrackersViewController: UIViewController {
 			self?.showTrackerTypeSelection()
 		}
 		navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .add, primaryAction: addAction)
-		navigationItem.leftBarButtonItem?.tintColor = .black
+		navigationItem.leftBarButtonItem?.tintColor = .ypBlack
 
 		let datePicker = UIDatePicker()
+		datePicker.backgroundColor = .white
+		datePicker.layer.cornerRadius = 8
+		datePicker.layer.masksToBounds = true
+		datePicker.overrideUserInterfaceStyle = .light
 		datePicker.datePickerMode = .date
 		datePicker.preferredDatePickerStyle = .compact
 		datePicker.addAction(UIAction { [weak self] _ in
 			self?.presenter.updateDate(datePicker.date)
 		}, for: .valueChanged)
+
 		navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
 
 		let searchController = UISearchController(searchResultsController: nil)
-		searchController.searchBar.placeholder = "Поиск"
 		searchController.obscuresBackgroundDuringPresentation = false
 		searchController.hidesNavigationBarDuringPresentation = false
 		searchController.searchResultsUpdater = self
+		if let textField = searchController.searchBar.value(forKey: "searchField") as? UITextField {
+			textField.attributedPlaceholder = NSAttributedString(
+				string: "Поиск",
+				attributes: [ .foregroundColor: UIColor.ypPlaceholder ]
+			)
+		}
+		if let textField = searchController.searchBar.value(forKey: "searchField") as? UITextField,
+		   let leftImageView = textField.leftView as? UIImageView {
+			leftImageView.tintColor = UIColor.ypPlaceholder
+		}
 		navigationItem.searchController = searchController
 		definesPresentationContext = true
 	}

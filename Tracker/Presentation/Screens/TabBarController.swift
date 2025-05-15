@@ -12,11 +12,12 @@ final class TabBarController: UITabBarController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		view.backgroundColor = .white
+		view.backgroundColor = .ypWhite
 
 		let appearance = UITabBarAppearance()
 		appearance.configureWithDefaultBackground()
-		appearance.backgroundColor = .white
+		appearance.backgroundColor = .ypWhite
+		appearance.shadowColor = .ypSepar
 		tabBar.standardAppearance = appearance
 		if #available(iOS 15.0, *) {
 			tabBar.scrollEdgeAppearance = appearance // без этой строки в iOS 15 не отображается разделитель

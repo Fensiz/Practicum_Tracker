@@ -110,7 +110,7 @@ final class CreationViewController: BaseViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		view.backgroundColor = .white
+		view.backgroundColor = .ypWhite
 
 		presenter.trackerOptions.append(
 			TrackerOption(title: "Категория", value: selectedCategory?.title) 	{ [weak self] in
@@ -216,6 +216,7 @@ final class CreationViewController: BaseViewController {
 		tableView.backgroundColor = .ypCellBack
 		tableView.layer.cornerRadius = 16
 		tableView.clipsToBounds = true
+		tableView.separatorColor = .ypGray
 
 		collectionView.dataSource = self
 		collectionView.delegate = self
@@ -342,7 +343,7 @@ extension CreationViewController: UITableViewDataSource, UITableViewDelegate {
 			conf.secondaryText = description
 		}
 		conf.textProperties.font = .systemFont(ofSize: 17, weight: .regular)
-		conf.textProperties.color = .black
+		conf.textProperties.color = .ypBlack
 		conf.secondaryTextProperties.font = .systemFont(ofSize: 17, weight: .regular)
 		conf.secondaryTextProperties.color = .ypGray
 		cell.contentConfiguration = conf

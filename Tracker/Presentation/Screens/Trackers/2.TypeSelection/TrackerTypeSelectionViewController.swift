@@ -58,7 +58,7 @@ final class TrackerTypeSelectionViewController: BaseViewController {
 
 	private func setupUI() {
 		screenTitle = "Создание трекера"
-		view.backgroundColor = .white
+		view.backgroundColor = .ypWhite
 
 		view.addSubview(stack)
 

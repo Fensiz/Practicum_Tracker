@@ -53,6 +53,7 @@ final class ScheduleViewController: BaseViewController {
 		tableView.backgroundColor = .ypCellBack
 		tableView.layer.cornerRadius = Constants.cornerRadius
 		tableView.clipsToBounds = true
+		tableView.separatorColor = .ypGray
 		contentView.addSubview(tableView)
 	}
 

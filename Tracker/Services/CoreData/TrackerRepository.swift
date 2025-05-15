@@ -99,7 +99,7 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 		return self.category(from: category)
 	}
 
-	func category(from entity: TrackerCategoryCDEntity) -> TrackerCategory? {
+	private func category(from entity: TrackerCategoryCDEntity) -> TrackerCategory? {
 		guard let title = entity.title else { return nil }
 
 		let trackers: [Tracker] = (entity.trackers as? Set<TrackerCDEntity>)?.compactMap {
