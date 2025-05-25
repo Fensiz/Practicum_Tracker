@@ -24,7 +24,7 @@ final class AppButton: UIButton {
 	private var normalTextColor: UIColor?
 
 	private let disabledBackgroundColor: UIColor = .ypGray
-	private let disabledTextColor: UIColor = .ypWhite
+	private let disabledTextColor: UIColor = .white
 
 	// MARK: - Lifecycle
 

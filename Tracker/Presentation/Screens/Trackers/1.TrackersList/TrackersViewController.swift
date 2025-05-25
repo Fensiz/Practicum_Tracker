@@ -10,7 +10,7 @@ import UIKit
 final class TrackersViewController: UIViewController {
 
 	// MARK: - Properties
-
+	private var contextMenuIndexPath: IndexPath?
 	private var presenter: TrackersPresenterProtocol
 
 	private lazy var collectionView: UICollectionView = {
@@ -33,7 +33,7 @@ final class TrackersViewController: UIViewController {
 
 	// MARK: - Init
 
-	init(presenter: TrackersPresenterProtocol = TrackersPresenter()) {
+	init(presenter: TrackersPresenterProtocol) {
 		self.presenter = presenter
 		super.init(nibName: nil, bundle: nil)
 	}
@@ -50,17 +50,6 @@ final class TrackersViewController: UIViewController {
 		setupNavigationBar()
 		setupBindings()
 		updateEmptyState()
-	}
-
-	// MARK: - Actions
-
-
-	@objc private func addButtonTapped() {
-		showTrackerTypeSelection()
-	}
-
-	@objc private func datePickerValueChanged(_ sender: UIDatePicker) {
-		presenter.updateDate(sender.date)
 	}
 
 	// MARK: - Private Methods
@@ -85,25 +74,39 @@ final class TrackersViewController: UIViewController {
 
 	private func setupNavigationBar() {
 		navigationController?.navigationBar.prefersLargeTitles = true
-
-		let addButton = UIButton(type: .system)
-		addButton.tintColor = .ypBlack
-		addButton.setImage(UIImage(systemName: "plus"), for: .normal)
-		addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-		navigationItem.leftBarButtonItem = UIBarButtonItem(customView: addButton)
-		navigationItem.leftBarButtonItem?.tintColor = .black
+		let addAction = UIAction { [weak self] _ in
+			self?.showTrackerTypeSelection()
+		}
+		navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .add, primaryAction: addAction)
+		navigationItem.leftBarButtonItem?.tintColor = .ypBlack
 
 		let datePicker = UIDatePicker()
+		datePicker.backgroundColor = .white
+		datePicker.layer.cornerRadius = 8
+		datePicker.layer.masksToBounds = true
+		datePicker.overrideUserInterfaceStyle = .light
 		datePicker.datePickerMode = .date
 		datePicker.preferredDatePickerStyle = .compact
-		datePicker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
+		datePicker.addAction(UIAction { [weak self] _ in
+			self?.presenter.updateDate(datePicker.date)
+		}, for: .valueChanged)
+
 		navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
 
 		let searchController = UISearchController(searchResultsController: nil)
-		searchController.searchBar.placeholder = "Поиск"
 		searchController.obscuresBackgroundDuringPresentation = false
 		searchController.hidesNavigationBarDuringPresentation = false
 		searchController.searchResultsUpdater = self
+		if let textField = searchController.searchBar.value(forKey: "searchField") as? UITextField {
+			textField.attributedPlaceholder = NSAttributedString(
+				string: "Поиск",
+				attributes: [ .foregroundColor: UIColor.ypPlaceholder ]
+			)
+		}
+		if let textField = searchController.searchBar.value(forKey: "searchField") as? UITextField,
+		   let leftImageView = textField.leftView as? UIImageView {
+			leftImageView.tintColor = UIColor.ypPlaceholder
+		}
 		navigationItem.searchController = searchController
 		definesPresentationContext = true
 	}
@@ -130,21 +133,15 @@ final class TrackersViewController: UIViewController {
 
 extension TrackersViewController: TrackerTypeSelectionDelegate {
 	func didSelectTrackerType(_ type: TrackerType, vc: UIViewController) {
+		let cpresenter = CreationViewPresenter()
 		let formVC = CreationViewController(
+			presenter: cpresenter,
+			repository: presenter.repository,
 			type: type,
-			categories: presenter.categories,
 			currentDate: type == .nonRegular ? presenter.currentDate : nil
 		)
-		formVC.delegate = self
+		
 		vc.present(formVC, animated: true)
-	}
-}
-
-// MARK: - CreationViewControllerDelegate
-
-extension TrackersViewController: CreationViewControllerDelegate {
-	func didCreateTrackerAndUpdate(categories: [TrackerCategory]) {
-		presenter.updateCategories(categories)
 	}
 }
 
@@ -207,7 +204,85 @@ extension TrackersViewController: UICollectionViewDataSource {
 	}
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
+// MARK: - CV Delegate
+
+extension TrackersViewController: UICollectionViewDelegate {
+	// область выделения ячейки при открытии контекстного меню
+	func collectionView(
+		_ collectionView: UICollectionView,
+		previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+	) -> UITargetedPreview? {
+		guard
+			let indexPath = configuration.identifier as? IndexPath,
+			let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell
+		else {
+			return nil
+		}
+
+		let targetView = cell.contextPreviewView()
+		let parameters = UIPreviewParameters()
+		parameters.visiblePath = UIBezierPath(
+			roundedRect: targetView.bounds,
+			cornerRadius: 16
+		)
+		parameters.backgroundColor = .clear
+
+		return UITargetedPreview(view: targetView, parameters: parameters)
+	}
+
+	// область выделения ячейки при закрытии контекстного меню
+	func collectionView(
+		_ collectionView: UICollectionView,
+		previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+	) -> UITargetedPreview? {
+		self.collectionView(collectionView, previewForHighlightingContextMenuWithConfiguration: configuration)
+	}
+
+	// область ячейки отображаемая в контекстном меню
+	func collectionView(
+		_ collectionView: UICollectionView,
+		contextMenuConfigurationForItemAt indexPath: IndexPath,
+		point: CGPoint
+	) -> UIContextMenuConfiguration? {
+		let tracker = presenter.visibleTrackers[indexPath.section].trackers[indexPath.item]
+
+		return UIContextMenuConfiguration(
+			identifier: indexPath as NSCopying,
+			previewProvider: nil,
+			actionProvider: { _ in
+				let delete = UIAction(
+					title: "Удалить",
+					image: nil,
+					attributes: .destructive
+				) { [weak self] _ in
+					self?.presenter.deleteTracker(tracker)
+				}
+				let edit = UIAction(
+					title: "Редактировать",
+					image: nil
+				) { [weak self] _ in
+					guard let self else { return }
+					let trackerCategory = self.presenter.visibleTrackers[indexPath.section]
+
+					let editPresenter = CreationViewPresenter()
+					let editVC = CreationViewController(
+						presenter: editPresenter,
+						repository: self.presenter.repository,
+						type: tracker.schedule == nil ? .nonRegular : .habit,
+						selectedTracker: tracker,
+						selectedCategory: trackerCategory,
+						currentDate: self.presenter.currentDate
+					)
+					self.present(editVC, animated: true)
+				}
+				return UIMenu(title: "", children: [edit, delete])
+			}
+		)
+	}
+}
+
+
+// MARK: - CV Delegate FlowLayout
 
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 	func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

@@ -24,6 +24,10 @@ final class ScheduleCell: UITableViewCell {
 	private let toggle: UISwitch = {
 		let toggleSwitch = UISwitch()
 		toggleSwitch.onTintColor = .ypBlue
+//		toggleSwitch.subviews[0].subviews[0].backgroundColor = .ypLightGray //временный хак
+		toggleSwitch.tintColor = .ypLightGray
+		toggleSwitch.backgroundColor = .ypLightGray
+		toggleSwitch.layer.cornerRadius = toggleSwitch.frame.height / 2
 		return toggleSwitch
 	}()
 
@@ -66,13 +70,8 @@ final class ScheduleCell: UITableViewCell {
 	}
 
 	private func setupActions() {
-		toggle.addTarget(self, action: #selector(toggleValueChanged), for: .valueChanged)
-	}
-
-	@objc
-	private func toggleValueChanged() {
-		toggleAction?(toggle.isOn)
+		toggle.addAction(UIAction { [weak self] _ in
+			self?.toggleAction?(self?.toggle.isOn ?? false)
+		}, for: .valueChanged)
 	}
 }
-
-

@@ -12,17 +12,21 @@ final class TabBarController: UITabBarController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		view.backgroundColor = .white
+		view.backgroundColor = .ypWhite
 
 		let appearance = UITabBarAppearance()
 		appearance.configureWithDefaultBackground()
-		appearance.backgroundColor = .white
+		appearance.backgroundColor = .ypWhite
+		appearance.shadowColor = .ypSepar
 		tabBar.standardAppearance = appearance
 		if #available(iOS 15.0, *) {
 			tabBar.scrollEdgeAppearance = appearance // без этой строки в iOS 15 не отображается разделитель
 		}
 
-		let presenter = TrackersPresenter()
+		let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+		let repository = TrackerRepository(context: context)
+		let presenter = TrackersPresenter(repository: repository)
+		repository.delegate = presenter
 		let trackersViewController = UINavigationController(
 			rootViewController: TrackersViewController(presenter: presenter)
 		)

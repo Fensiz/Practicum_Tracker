@@ -40,7 +40,7 @@ final class TrackerCell: UICollectionViewCell {
 	private let countLabel: UILabel = {
 		let label = UILabel()
 		label.font = .ypMedium12
-		label.textColor = .label
+		label.textColor = .ypBlack
 		return label
 	}()
 
@@ -56,8 +56,8 @@ final class TrackerCell: UICollectionViewCell {
 	private let addButton: UIButton = {
 		let button = UIButton(type: .system)
 		button.titleLabel?.font = .ypRegular17
-		button.tintColor = .white
-		button.backgroundColor = .black
+		button.tintColor = .ypWhite
+		button.backgroundColor = .ypBlack
 		button.layer.cornerRadius = Constants.trackerCellAddButtonSize / 2
 		button.layer.masksToBounds = true
 		return button
@@ -75,7 +75,6 @@ final class TrackerCell: UICollectionViewCell {
 
 	private var isCompleted = false
 	private var trackerColor: UIColor = .black
-	private var buttonAction: (() -> Void)?
 
 	// MARK: - Lifecycle
 
@@ -94,7 +93,17 @@ final class TrackerCell: UICollectionViewCell {
 		addButton.setTitle(nil, for: .normal)
 		addButton.setImage(nil, for: .normal)
 		isCompleted = false
-		buttonAction = nil
+	}
+
+	func contextPreviewView() -> UIView {
+		return topContainerView
+	}
+
+	func contextPreviewViewSnapshot() -> UIView {
+		let snapshot = topContainerView.snapshotView(afterScreenUpdates: false) ?? topContainerView
+		snapshot.layer.cornerRadius = 5
+		snapshot.layer.masksToBounds = true
+		return snapshot
 	}
 
 	// MARK: - Public Methods
@@ -110,16 +119,11 @@ final class TrackerCell: UICollectionViewCell {
 		countLabel.text = daysText(count)
 		addButton.isEnabled = isActive
 
-		self.buttonAction = action
-		addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+		addButton.addAction(UIAction { [weak self] _ in
+			action()
+			self?.updateUI()
+		}, for: .touchUpInside)
 
-		updateUI()
-	}
-
-	// MARK: - Actions
-
-	@objc private func addButtonTapped() {
-		buttonAction?()
 		updateUI()
 	}
 
