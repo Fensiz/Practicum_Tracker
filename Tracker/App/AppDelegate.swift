@@ -34,7 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //				}
 		container.loadPersistentStores { _, error in
 			if let error = error {
-				fatalError("Unresolved error \(error)")
+				assertionFailure("Unresolved error \(error)")
 			}
 		}
 		return container
