@@ -162,6 +162,6 @@ extension PageViewController: UIPageViewControllerDelegate {
 	}
 }
 
-#Preview {
-	PageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
-}
+//#Preview {
+//	PageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
+//}
