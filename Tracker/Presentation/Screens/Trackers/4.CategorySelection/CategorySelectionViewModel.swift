@@ -7,16 +7,13 @@
 
 import Foundation
 
-protocol CategorySelectionViewProtocol: AnyObject {
-	func performBatchUpdate(insert: [Int], delete: [Int], reload: [Int])
-	func updateCategories(_ categories: [TrackerCategory])
-	func showError(_ message: String)
-	func dismissView()
-}
-
-final class CategorySelectionPresenter: CategorySelectionPresenterProtocol {
+final class CategorySelectionViewModel {
 	weak var delegate: CategorySelectionDelegate?
-	weak var view: CategorySelectionViewProtocol?
+
+	var onUpdate: (() -> Void)?
+	var onError: ((String) -> Void)?
+	var onDismiss: (() -> Void)?
+	var onBatchUpdate: ((_ insert: [Int], _ delete: [Int], _ reload: [Int]) -> Void)?
 
 	var numberOfCategories: Int {
 		categories.count
@@ -53,7 +50,7 @@ final class CategorySelectionPresenter: CategorySelectionPresenterProtocol {
 
 			guard let index = updatedCategories.firstIndex(where: { $0.title == title }) else {
 				categories = updatedCategories
-				view?.updateCategories(categories)
+				onUpdate?()
 				return
 			}
 
@@ -69,13 +66,13 @@ final class CategorySelectionPresenter: CategorySelectionPresenterProtocol {
 				reload = []
 			}
 
-			view?.performBatchUpdate(
-				insert: [index],
-				delete: [],
-				reload: reload
+			onBatchUpdate?(
+				[index],	//insert
+				[],			//delete
+				reload		//reload
 			)
 		} catch {
-			view?.showError("Не удалось добавить категорию")
+			onError?("Не удалось добавить категорию")
 		}
 	}
 
@@ -89,17 +86,17 @@ final class CategorySelectionPresenter: CategorySelectionPresenterProtocol {
 
 			categories.remove(at: index)
 
-			view?.performBatchUpdate(
-				insert: [],
-				delete: [index],
-				reload: reload
+			onBatchUpdate?(
+				[],			//insert
+				[index],	//delete
+				reload		//reload
 			)
 
 			if selectedCategory == category {
 				selectedCategory = nil
 			}
 		} catch {
-			view?.showError("Не удалось удалить категорию")
+			onError?("Не удалось удалить категорию")
 		}
 	}
 
@@ -117,16 +114,16 @@ final class CategorySelectionPresenter: CategorySelectionPresenterProtocol {
 				selectedCategory = updated
 			}
 
-			view?.updateCategories(categories)
+			onUpdate?()
 		} catch {
-			view?.showError("Не удалось изменить категорию")
+			onError?("Не удалось изменить категорию")
 		}
 	}
 
 	func didSelectCategory(at index: Int) {
 		let selected = categories[index]
 		delegate?.didSelectCategory(selected, [])
-		view?.dismissView()
+		onDismiss?()
 	}
 
 	private func fetchCategories() {
