@@ -115,15 +115,14 @@ final class CreationViewController: BaseViewController {
 		presenter.trackerOptions.append(
 			TrackerOption(title: "Категория", value: selectedCategory?.title) 	{ [weak self] in
 				guard let self else { return UIViewController() }
-				let presenter = CategorySelectionPresenter(
+				let viewModel = CategorySelectionViewModel(
 					repository: repository,
 					selected: selectedCategory
 				)
-				let vc = CategorySelectionViewController(
-					presenter: presenter
-				)
-				presenter.view = vc
-				presenter.delegate = self
+				let vc = CategorySelectionViewController(viewModel: viewModel)
+//				vc.initialize(viewModel: viewModel)
+//				presenter.view = vc
+				viewModel.delegate = self
 
 				return vc
 			}
