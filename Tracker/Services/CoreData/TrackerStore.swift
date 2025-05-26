@@ -87,7 +87,9 @@ final class TrackerStore {
 		let calendar = Calendar.current
 		let startOfDay = calendar.startOfDay(for: date)
 
-		let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+		guard let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+			fatalError("Unable to calculate next day for FRC predicate")
+		}
 		let weekdayRaw = WeekDay.from(date: date).rawValue
 
 		let schedulePredicate = NSPredicate(format: "schedule CONTAINS %@", "\(weekdayRaw)")

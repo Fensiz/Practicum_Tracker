@@ -57,7 +57,7 @@ final class CategorySelectionViewController: BaseViewController {
 		tableView.backgroundColor = .ypCellBack
 		tableView.layer.cornerRadius = Constants.cornerRadius
 		tableView.separatorColor = .ypGray
-		tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+		tableView.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.reuseIdentifier)
 
 		view.addSubview(emptyView)
 		view.addSubview(scrollView)
@@ -130,11 +130,29 @@ final class CategorySelectionViewController: BaseViewController {
 	}
 
 	private func bind() {
-		viewModel.onError = { [weak self] in self?.showError($0) }
-		viewModel.onDismiss = { [weak self] in self?.dismissView() }
-		viewModel.onUpdate = { [weak self] in self?.updateCategories() }
+		bindViewUpdates()
+		bindNavigationEvents()
+		bindErrors()
+	}
+
+	private func bindViewUpdates() {
+		viewModel.onUpdate = { [weak self] in
+			self?.updateCategories()
+		}
 		viewModel.onBatchUpdate = { [weak self] insert, delete, reload in
 			self?.performBatchUpdate(insert: insert, delete: delete, reload: reload)
+		}
+	}
+
+	private func bindNavigationEvents() {
+		viewModel.onDismiss = { [weak self] in
+			self?.dismissView()
+		}
+	}
+
+	private func bindErrors() {
+		viewModel.onError = { [weak self] in
+			self?.showError($0)
 		}
 	}
 }
@@ -205,23 +223,11 @@ extension CategorySelectionViewController: UITableViewDataSource, UITableViewDel
 	}
 
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-		let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-		cell.backgroundColor = .ypCellBack
+		let cell = tableView.dequeueReusableCell(withIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
 		let category = viewModel.category(at: indexPath.row)
-		cell.textLabel?.text = category.title
-
-		if category == viewModel.selectedCategory {
-			cell.accessoryType = .checkmark
-		} else {
-			cell.accessoryType = .none
-		}
-
-		if indexPath.row == viewModel.numberOfCategories - 1 {
-			cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
-		} else {
-			cell.separatorInset = UIEdgeInsets(top: 0, left: Constants.commonPadding, bottom: 0, right: Constants.commonPadding)
-		}
-
+		let isLast = indexPath.row == viewModel.numberOfCategories - 1
+		let isSelected = category == viewModel.selectedCategory
+		cell.configure(with: category.title, isSelected: isSelected, isLast: isLast)
 		return cell
 	}
 
