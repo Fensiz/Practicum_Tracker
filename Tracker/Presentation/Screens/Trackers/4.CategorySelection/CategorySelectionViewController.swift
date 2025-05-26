@@ -223,7 +223,9 @@ extension CategorySelectionViewController: UITableViewDataSource, UITableViewDel
 	}
 
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-		let cell = tableView.dequeueReusableCell(withIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
+		guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as? CategoryCell else {
+			return UITableViewCell()
+		}
 		let category = viewModel.category(at: indexPath.row)
 		let isLast = indexPath.row == viewModel.numberOfCategories - 1
 		let isSelected = category == viewModel.selectedCategory
