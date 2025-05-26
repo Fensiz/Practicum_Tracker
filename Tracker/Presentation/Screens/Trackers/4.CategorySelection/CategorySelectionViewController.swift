@@ -224,6 +224,7 @@ extension CategorySelectionViewController: UITableViewDataSource, UITableViewDel
 
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 		guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as? CategoryCell else {
+			assertionFailure("Ячейка не найдена")
 			return UITableViewCell()
 		}
 		let category = viewModel.category(at: indexPath.row)
