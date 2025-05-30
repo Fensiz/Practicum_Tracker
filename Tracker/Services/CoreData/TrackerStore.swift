@@ -25,6 +25,7 @@ final class TrackerStore {
 		entity.schedule = tracker.scheduleString
 		entity.date = tracker.date
 		entity.category = categoryEntity
+		entity.isPinned = tracker.isPinned
 	}
 
 	func delete(_ trackerID: UUID) throws {
@@ -68,7 +69,8 @@ final class TrackerStore {
 			color: color,
 			emoji: emoji,
 			schedule: schedule,
-			date: entity.date
+			date: entity.date,
+			isPinned: entity.isPinned
 		)
 	}
 	

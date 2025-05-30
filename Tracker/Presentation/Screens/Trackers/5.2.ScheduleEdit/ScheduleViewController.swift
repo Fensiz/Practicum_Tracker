@@ -15,7 +15,7 @@ final class ScheduleViewController: BaseViewController {
 	private let scrollView = UIScrollView()
 	private let contentView = UIView()
 	private let tableView = UITableView()
-	private let doneButton = AppButton(title: "Готово")
+	private let doneButton = AppButton(title: "Done")
 
 	init(days: Set<WeekDay>?) {
 		selectedDays = days ?? Set<WeekDay>()
@@ -28,7 +28,7 @@ final class ScheduleViewController: BaseViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		screenTitle = "Расписание"
+		screenTitle = "Schedule"
 
 		setupScrollView()
 		setupTableView()

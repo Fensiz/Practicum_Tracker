@@ -34,17 +34,31 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 	func visibleTrackers(searchText: String) -> [TrackerCategory] {
 		guard let sections = fetchedResultsController?.sections else { return [] }
 
-		return sections.compactMap { section in
+		var pinned: [Tracker] = []
+
+		var notPinnedCategories: [TrackerCategory] = sections.compactMap { section in
 			guard let trackerEntities = section.objects as? [TrackerCDEntity] else { return nil }
 
 			let trackers = trackerEntities
 				.compactMap { trackerStore.tracker(from: $0) }
 				.filter { searchText.isEmpty || $0.name.lowercased().contains(searchText.lowercased()) }
 
-			guard !trackers.isEmpty else { return nil }
+			let pinnedTrackers = trackers.filter { $0.isPinned }
+			let notPinnedTrackers = trackers.filter { !$0.isPinned }
+
+			if !pinnedTrackers.isEmpty {
+				pinned += pinnedTrackers
+			}
+
+			guard !notPinnedTrackers.isEmpty else { return nil }
 
 			return TrackerCategory(title: section.name, trackers: trackers)
 		}
+		if !pinned.isEmpty {
+			notPinnedCategories.insert(.init(title: String(localized: "Pinned"), trackers: pinned), at: 0)
+		}
+
+		return notPinnedCategories
 	}
 
 	func addTracker(_ tracker: Tracker, to category: TrackerCategory) throws {
@@ -56,16 +70,17 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 
 
 	func updateTracker(_ tracker: Tracker, in newCategory: TrackerCategory) throws {
-		let TrackerCDEntity = try trackerStore.fetchEntity(by: tracker.id)
+		let trackerCDEntity = try trackerStore.fetchEntity(by: tracker.id)
 
-		TrackerCDEntity.name = tracker.name
-		TrackerCDEntity.emoji = tracker.emoji
-		TrackerCDEntity.colorHex = tracker.color.toHex()
-		TrackerCDEntity.schedule = tracker.scheduleString
+		trackerCDEntity.name = tracker.name
+		trackerCDEntity.emoji = tracker.emoji
+		trackerCDEntity.colorHex = tracker.color.toHex()
+		trackerCDEntity.schedule = tracker.scheduleString
+		trackerCDEntity.isPinned = tracker.isPinned
 
-		if TrackerCDEntity.category?.title != newCategory.title {
+		if trackerCDEntity.category?.title != newCategory.title {
 			let newCategoryEntity = try categoryStore.getOrCreateCategoryEntity(for: newCategory)
-			TrackerCDEntity.category = newCategoryEntity
+			trackerCDEntity.category = newCategoryEntity
 		}
 
 		try saveContext()
@@ -74,6 +89,13 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 	func deleteTracker(id: UUID) throws {
 		try trackerStore.delete(id)
 		
+		try saveContext()
+	}
+
+	func togglePinnedTracker(id: UUID) throws {
+		let trackerCDEntity = try trackerStore.fetchEntity(by: id)
+		trackerCDEntity.isPinned.toggle()
+
 		try saveContext()
 	}
 

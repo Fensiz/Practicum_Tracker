@@ -12,7 +12,7 @@ final class TrackerTypeSelectionViewController: BaseViewController {
 	// MARK: - UI Elements
 
 	private lazy var createHabitButton: UIButton = {
-		let button = AppButton(title: "Привычка")
+		let button = AppButton(title: "Habit")
 		button.addAction(UIAction { [weak self] _ in
 			self?.createHabit()
 		}, for: .touchUpInside)
@@ -20,7 +20,7 @@ final class TrackerTypeSelectionViewController: BaseViewController {
 	}()
 
 	private lazy var createNonRegularEventButton: UIButton = {
-		let button = AppButton(title: "Нерегулярное событие")
+		let button = AppButton(title: "Irregular Event")
 		button.addAction(UIAction { [weak self] _ in
 			self?.createNonRegularEvent()
 		}, for: .touchUpInside)
@@ -57,7 +57,7 @@ final class TrackerTypeSelectionViewController: BaseViewController {
 	// MARK: - Private Methods
 
 	private func setupUI() {
-		screenTitle = "Создание трекера"
+		screenTitle = String(localized: "Create Tracker")
 		view.backgroundColor = .ypWhite
 
 		view.addSubview(stack)

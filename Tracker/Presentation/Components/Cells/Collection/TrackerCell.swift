@@ -132,9 +132,9 @@ final class TrackerCell: UICollectionViewCell {
 	private func daysText(_ count: Int) -> String {
 		let daysText: String
 		switch count {
-			case 1: daysText = "день"
-			case 2...4: daysText = "дня"
-			default: daysText = "дней"
+			case 1: daysText = String(localized: "oneDay")
+			case 2...4: daysText = String(localized: "twoDays")
+			default: daysText = String(localized: "moreDays")
 		}
 		return "\(count) \(daysText)"
 	}

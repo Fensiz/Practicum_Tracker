@@ -29,7 +29,8 @@ final class TrackersViewController: UIViewController {
 		return collectionView
 	}()
 
-	private let dummyView = TrackersEmptyView(text: "Что будем отслеживать?")
+	private let dummyView = TrackersEmptyView(text: String(localized: "What would you like to track?"))
+	private let searchDummyView = TrackersEmptyView(text: String(localized: "Nothing found"), emoji: "🤔")
 
 	// MARK: - Init
 
@@ -55,11 +56,13 @@ final class TrackersViewController: UIViewController {
 	// MARK: - Private Methods
 
 	private func setupUI() {
-		title = "Трекеры"
+		title = String(localized: "Trackers")
 		view.addSubview(dummyView)
+		view.addSubview(searchDummyView)
 		view.addSubview(collectionView)
 
 		dummyView.translatesAutoresizingMaskIntoConstraints = false
+		searchDummyView.translatesAutoresizingMaskIntoConstraints = false
 
 		NSLayoutConstraint.activate([
 			collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -69,6 +72,9 @@ final class TrackersViewController: UIViewController {
 
 			dummyView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
 			dummyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+			searchDummyView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+			searchDummyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 		])
 	}
 
@@ -99,7 +105,7 @@ final class TrackersViewController: UIViewController {
 		searchController.searchResultsUpdater = self
 		if let textField = searchController.searchBar.value(forKey: "searchField") as? UITextField {
 			textField.attributedPlaceholder = NSAttributedString(
-				string: "Поиск",
+				string: String(localized: "Search"),
 				attributes: [ .foregroundColor: UIColor.ypPlaceholder ]
 			)
 		}
@@ -119,7 +125,8 @@ final class TrackersViewController: UIViewController {
 	}
 
 	private func updateEmptyState() {
-		dummyView.isHidden = !presenter.visibleTrackers.isEmpty
+		dummyView.isHidden = !(presenter.visibleTrackers.isEmpty && presenter.searchText.isEmpty)
+		searchDummyView.isHidden = !(presenter.visibleTrackers.isEmpty && !presenter.searchText.isEmpty)
 	}
 
 	private func showTrackerTypeSelection() {
@@ -250,15 +257,19 @@ extension TrackersViewController: UICollectionViewDelegate {
 			identifier: indexPath as NSCopying,
 			previewProvider: nil,
 			actionProvider: { _ in
+				let title = tracker.isPinned ? String(localized: "Unpin") : String(localized: "Pin")
+				let pin = UIAction(title: title) { [weak self] _ in
+					self?.presenter.togglePinned(for: tracker)
+				}
 				let delete = UIAction(
-					title: "Удалить",
+					title: String(localized: "Delete"),
 					image: nil,
 					attributes: .destructive
 				) { [weak self] _ in
 					self?.presenter.deleteTracker(tracker)
 				}
 				let edit = UIAction(
-					title: "Редактировать",
+					title: String(localized: "Edit"),
 					image: nil
 				) { [weak self] _ in
 					guard let self else { return }
@@ -275,7 +286,7 @@ extension TrackersViewController: UICollectionViewDelegate {
 					)
 					self.present(editVC, animated: true)
 				}
-				return UIMenu(title: "", children: [edit, delete])
+				return UIMenu(title: "", children: [pin, edit, delete])
 			}
 		)
 	}

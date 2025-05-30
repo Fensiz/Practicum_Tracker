@@ -20,7 +20,7 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 		}
 	}
 
-	private var searchText: String = "" {
+	private(set) var searchText: String = "" {
 		didSet {
 			onChange?()
 		}
@@ -53,6 +53,15 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 	func updateSearchText(_ text: String) {
 		searchText = text
 		onChange?()
+	}
+
+	func togglePinned(for tracker: Tracker) {
+		do {
+			try repository.togglePinnedTracker(id: tracker.id)
+			onChange?()
+		} catch {
+			print("⚠️ Ошибка при переключении записи: \(error)")
+		}
 	}
 
 	func toggleCompletion(for tracker: Tracker) {

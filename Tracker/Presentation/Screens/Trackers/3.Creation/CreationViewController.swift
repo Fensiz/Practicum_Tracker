@@ -17,11 +17,11 @@ final class CreationViewController: BaseViewController {
 	private var currentDate: Date?
 	private let repository: TrackerRepositoryProtocol
 
-	private let textField: UITextField = PaddedTextField(placeholder: "Введите название трекера")
+	private let textField: UITextField = PaddedTextField(placeholder: "Enter tracker name")
 	private let tableView = UITableView(frame: .zero, style: .plain)
 	private let collectionView: UICollectionView
-	private let cancelButton = AppButton(title: "Отмена", style: .outlined())
-	private let saveButton = AppButton(title: "Сохранить")
+	private let cancelButton = AppButton(title: "Cancel", style: .outlined())
+	private let saveButton = AppButton(title: "Save")
 	private var stackView: UIStackView!
 
 	private var selectedCategory: TrackerCategory?
@@ -113,15 +113,13 @@ final class CreationViewController: BaseViewController {
 		view.backgroundColor = .ypWhite
 
 		presenter.trackerOptions.append(
-			TrackerOption(title: "Категория", value: selectedCategory?.title) 	{ [weak self] in
+			TrackerOption(title: "Category", value: selectedCategory?.title) 	{ [weak self] in
 				guard let self else { return UIViewController() }
 				let viewModel = CategorySelectionViewModel(
 					repository: repository,
 					selected: selectedCategory
 				)
 				let vc = CategorySelectionViewController(viewModel: viewModel)
-//				vc.initialize(viewModel: viewModel)
-//				presenter.view = vc
 				viewModel.delegate = self
 
 				return vc
@@ -129,7 +127,7 @@ final class CreationViewController: BaseViewController {
 		)
 		if trackerType == .habit {
 			presenter.trackerOptions.append(
-				TrackerOption(title: "Расписание", value: daysString) { [weak self] in
+				TrackerOption(title: "Schedule", value: daysString) { [weak self] in
 					guard let self else { return UIViewController() }
 					let vc = ScheduleViewController(days: self.weekDays)
 					vc.delegate = self
@@ -251,7 +249,8 @@ final class CreationViewController: BaseViewController {
 						color: colors[selectedColorIndex.row],
 						emoji: emojis[selectedEmojiIndex.row],
 						schedule: self.trackerType == .habit ? self.weekDays : nil,
-						date: self.trackerType == .nonRegular ? self.currentDate : nil
+						date: self.trackerType == .nonRegular ? self.currentDate : nil,
+						isPinned: false
 					)
 					updateTracker(tracker, inCategory: self.selectedCategory)
 				} else {
@@ -265,7 +264,8 @@ final class CreationViewController: BaseViewController {
 						color: colors[selectedColorIndex.row],
 						emoji: emojis[selectedEmojiIndex.row],
 						schedule: self.trackerType == .habit ? self.weekDays : nil,
-						date: self.trackerType == .nonRegular ? self.currentDate : nil
+						date: self.trackerType == .nonRegular ? self.currentDate : nil,
+						isPinned: false
 					)
 					self.addTracker(tracker, toCategory: self.selectedCategory)
 				}

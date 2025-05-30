@@ -32,7 +32,7 @@ final class TabBarController: UITabBarController {
 		)
 
 		trackersViewController.tabBarItem = UITabBarItem(
-			title: "Трекеры",
+			title: String(localized: "Trackers"),
 			image: UIImage(systemName: "record.circle.fill"),
 			selectedImage: nil
 		)
@@ -40,7 +40,7 @@ final class TabBarController: UITabBarController {
 		let statisticViewController = StatisticViewController()
 
 		statisticViewController.tabBarItem = UITabBarItem(
-			title: "Статистика",
+			title: String(localized: "Statistics"),
 			image: UIImage(systemName: "hare.fill"),
 			selectedImage: nil
 		)

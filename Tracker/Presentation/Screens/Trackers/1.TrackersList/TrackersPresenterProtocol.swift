@@ -13,6 +13,7 @@ protocol TrackersPresenterProtocol {
 	var currentDate: Date { get }
 	var isTrackerActionEnabled: Bool { get }
 	var repository: TrackerRepository { get }
+	var searchText: String { get }
 
 	func fetchCategories() -> [TrackerCategory]
 	func updateDate(_ date: Date)
@@ -21,4 +22,5 @@ protocol TrackersPresenterProtocol {
 	func completedCount(for tracker: Tracker) -> Int
 	func updateSearchText(_ text: String)
 	func deleteTracker(_ tracker: Tracker)
+	func togglePinned(for: Tracker)
 }

@@ -12,7 +12,8 @@ class BaseViewController: UIViewController {
 
 	var screenTitle: String? {
 		didSet {
-			titleLabel.text = screenTitle
+			guard let screenTitle else { return }
+			titleLabel.text = String(localized: String.LocalizationValue(screenTitle))
 		}
 	}
 

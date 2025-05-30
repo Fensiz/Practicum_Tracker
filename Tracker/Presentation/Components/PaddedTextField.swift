@@ -20,7 +20,7 @@ final class PaddedTextField: UITextField {
 
 		if let placeholder = placeholder {
 			self.attributedPlaceholder = NSAttributedString(
-				string: placeholder,
+				string: String(localized: String.LocalizationValue(placeholder)),
 				attributes: [
 					.foregroundColor: UIColor.ypGray
 				]
