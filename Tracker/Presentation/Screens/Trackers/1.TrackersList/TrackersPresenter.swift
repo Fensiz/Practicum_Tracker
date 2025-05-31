@@ -12,12 +12,49 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 
 	// MARK: - Properties
 
-	private(set) var repository: TrackerRepository
+	private(set) var repository: TrackerRepositoryProtocol
 
 	private(set) var currentDate: Date {
 		didSet {
-			repository.startObservingTrackers(for: currentDate)
+			onChangeDate?(currentDate)
+			applyFilter()
 		}
+	}
+
+	private(set) var filter: Option = .allTrackers {
+		didSet {
+			if filter == .todayTrackers {
+				currentDate = Date()
+			} else {
+				applyFilter()
+			}
+		}
+	}
+
+
+	private func applyFilter() {
+		let calendar = Calendar.current
+		var isCompleted: Bool?
+
+		switch filter {
+			case .allTrackers:
+				isCompleted = nil
+
+			case .todayTrackers:
+				if !calendar.isDate(currentDate, inSameDayAs: Date()) {
+					filter = .allTrackers
+					return
+				}
+				isCompleted = nil
+
+			case .completed:
+				isCompleted = true
+
+			case .uncompleted:
+				isCompleted = false
+		}
+
+		repository.startObservingTrackers(for: currentDate, completed: isCompleted)
 	}
 
 	private(set) var searchText: String = "" {
@@ -27,6 +64,7 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 	}
 
 	var onChange: (() -> Void)?
+	var onChangeDate: ((Date) -> Void)?
 
 	var isTrackerActionEnabled: Bool {
 		!(Calendar.current.startOfDay(for: currentDate) > Calendar.current.startOfDay(for: Date()))
@@ -36,12 +74,16 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 		repository.visibleTrackers(searchText: searchText)
 	}
 
+	var isDayHasTrackers: Bool {
+		repository.isDayHasTrackers(currentDate)
+	}
+
 	// MARK: - Init
 
 	init(repository: TrackerRepository) {
 		self.repository = repository
 		self.currentDate = Date()
-		self.repository.startObservingTrackers(for: currentDate)
+		self.repository.startObservingTrackers(for: currentDate, completed: nil)
 	}
 
 	// MARK: - Public methods
@@ -52,7 +94,6 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 
 	func updateSearchText(_ text: String) {
 		searchText = text
-		onChange?()
 	}
 
 	func togglePinned(for tracker: Tracker) {
@@ -106,5 +147,11 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 extension TrackersPresenter: TrackersPresenterDelegate {
 	func trackerStoreDidChangeContent() {
 		onChange?()
+	}
+}
+
+extension TrackersPresenter: FilterOptionSelectionDelegate {
+	func didSelectFilterOption(_ option: Option) {
+		filter = option
 	}
 }

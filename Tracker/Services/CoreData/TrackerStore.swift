@@ -83,7 +83,7 @@ final class TrackerStore {
 		return entity
 	}
 
-	func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerCDEntity> {
+	func makeFetchedResultsController(for date: Date, completed: Bool? = nil) -> NSFetchedResultsController<TrackerCDEntity> {
 		let request: NSFetchRequest<TrackerCDEntity> = TrackerCDEntity.fetchRequest()
 
 		let calendar = Calendar.current
@@ -96,7 +96,29 @@ final class TrackerStore {
 
 		let schedulePredicate = NSPredicate(format: "schedule CONTAINS %@", "\(weekdayRaw)")
 		let datePredicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as CVarArg, nextDay as CVarArg)
-		request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [schedulePredicate, datePredicate])
+
+		let basePredicate = NSCompoundPredicate(type: .or, subpredicates: [schedulePredicate, datePredicate])
+
+		var finalPredicate: NSPredicate = basePredicate
+
+		if let completed = completed {
+			let completedPredicate: NSPredicate
+			if completed {
+				completedPredicate = NSPredicate(
+					format: "SUBQUERY(records, $r, $r.date >= %@ AND $r.date < %@).@count > 0",
+					startOfDay as CVarArg, nextDay as CVarArg
+				)
+			} else {
+				completedPredicate = NSPredicate(
+					format: "SUBQUERY(records, $r, $r.date >= %@ AND $r.date < %@).@count == 0",
+					startOfDay as CVarArg, nextDay as CVarArg
+				)
+			}
+			// (schedule OR date) AND completed
+			finalPredicate = NSCompoundPredicate(type: .and, subpredicates: [basePredicate, completedPredicate])
+		}
+
+		request.predicate = finalPredicate
 		request.sortDescriptors = [
 			NSSortDescriptor(key: "category.title", ascending: true),
 			NSSortDescriptor(key: "name", ascending: true)

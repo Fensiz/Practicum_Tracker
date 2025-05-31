@@ -13,6 +13,8 @@ final class TrackersViewController: UIViewController {
 	private var contextMenuIndexPath: IndexPath?
 	private var presenter: TrackersPresenterProtocol
 
+	private let datePicker = UIDatePicker()
+
 	private lazy var collectionView: UICollectionView = {
 		let layout = UICollectionViewFlowLayout()
 		let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -32,11 +34,27 @@ final class TrackersViewController: UIViewController {
 	private let dummyView = TrackersEmptyView(text: String(localized: "What would you like to track?"))
 	private let searchDummyView = TrackersEmptyView(text: String(localized: "Nothing found"), emoji: "🤔")
 
+	private lazy var filterButton = {
+		let button = UIButton()
+		button.setTitle(String(localized: "Filters"), for: .normal)
+		button.layer.backgroundColor = UIColor.ypBlue.cgColor
+		button.layer.cornerRadius = Constants.cornerRadius
+		let action = UIAction { [weak self] _ in
+			self?.showFilterOptions()
+		}
+		button.addAction(action, for: .touchUpInside)
+		button.translatesAutoresizingMaskIntoConstraints = false
+		return button
+	}()
+
 	// MARK: - Init
 
 	init(presenter: TrackersPresenterProtocol) {
 		self.presenter = presenter
 		super.init(nibName: nil, bundle: nil)
+		self.presenter.onChangeDate = { [weak self] date in
+			self?.datePicker.setDate(date, animated: true)
+		}
 	}
 
 	required init?(coder: NSCoder) {
@@ -60,6 +78,7 @@ final class TrackersViewController: UIViewController {
 		view.addSubview(dummyView)
 		view.addSubview(searchDummyView)
 		view.addSubview(collectionView)
+		view.addSubview(filterButton)
 
 		dummyView.translatesAutoresizingMaskIntoConstraints = false
 		searchDummyView.translatesAutoresizingMaskIntoConstraints = false
@@ -75,6 +94,11 @@ final class TrackersViewController: UIViewController {
 
 			searchDummyView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
 			searchDummyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+			filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+			filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+			filterButton.widthAnchor.constraint(equalToConstant: 114),
+			filterButton.heightAnchor.constraint(equalToConstant: 50),
 		])
 	}
 
@@ -86,7 +110,6 @@ final class TrackersViewController: UIViewController {
 		navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .add, primaryAction: addAction)
 		navigationItem.leftBarButtonItem?.tintColor = .ypBlack
 
-		let datePicker = UIDatePicker()
 		datePicker.backgroundColor = .white
 		datePicker.layer.cornerRadius = 8
 		datePicker.layer.masksToBounds = true
@@ -94,7 +117,8 @@ final class TrackersViewController: UIViewController {
 		datePicker.datePickerMode = .date
 		datePicker.preferredDatePickerStyle = .compact
 		datePicker.addAction(UIAction { [weak self] _ in
-			self?.presenter.updateDate(datePicker.date)
+			guard let self else { return }
+			self.presenter.updateDate(self.datePicker.date)
 		}, for: .valueChanged)
 
 		navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
@@ -119,20 +143,56 @@ final class TrackersViewController: UIViewController {
 
 	private func setupBindings() {
 		presenter.onChange = { [weak self] in
-			self?.updateEmptyState()
-			self?.collectionView.reloadData()
+			guard let self else { return }
+			if self.presenter.isDayHasTrackers {
+				self.showFilterButton()
+			} else {
+				self.hideFilterButton()
+			}
+			self.updateEmptyState()
+			self.collectionView.reloadData()
 		}
 	}
 
 	private func updateEmptyState() {
-		dummyView.isHidden = !(presenter.visibleTrackers.isEmpty && presenter.searchText.isEmpty)
-		searchDummyView.isHidden = !(presenter.visibleTrackers.isEmpty && !presenter.searchText.isEmpty)
+		let hasSearchText = !presenter.searchText.isEmpty
+		let hasVisibleTrackers = !presenter.visibleTrackers.isEmpty
+
+		let dummyViewShowCondition = !hasVisibleTrackers && !hasSearchText
+		let searchDummyViewShowCondition = !hasVisibleTrackers && hasSearchText
+
+		dummyView.isHidden = !dummyViewShowCondition
+		searchDummyView.isHidden = !searchDummyViewShowCondition
 	}
 
 	private func showTrackerTypeSelection() {
 		let formVC = TrackerTypeSelectionViewController()
 		formVC.delegate = self
 		present(formVC, animated: true)
+	}
+
+	private func showFilterOptions() {
+		let vm = FilterOptionsViewModel(
+			selectedOption: presenter.filter,
+			delegate: presenter
+		)
+		let vc = FilterOptionsViewController(viewModel: vm)
+
+		present(vc, animated: true)
+	}
+
+	private func showFilterButton() {
+		filterButton.isHidden = false
+
+		collectionView.contentInset.bottom = filterButton.frame.height + 16
+		collectionView.scrollIndicatorInsets = collectionView.contentInset
+	}
+
+	private func hideFilterButton() {
+		filterButton.isHidden = true
+
+		collectionView.contentInset.bottom = 0
+		collectionView.scrollIndicatorInsets = collectionView.contentInset
 	}
 }
 

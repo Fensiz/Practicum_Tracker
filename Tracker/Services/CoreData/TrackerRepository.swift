@@ -61,6 +61,31 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 		return notPinnedCategories
 	}
 
+	func isDayHasTrackers(_ date: Date) -> Bool {
+		let request = TrackerCDEntity.fetchRequest()
+
+		let calendar = Calendar.current
+		let startOfDay = calendar.startOfDay(for: date)
+		guard let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+			return false
+		}
+		let weekdayRaw = WeekDay.from(date: date).rawValue
+
+		let schedulePredicate = NSPredicate(format: "schedule CONTAINS %@", "\(weekdayRaw)")
+		let datePredicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as CVarArg, nextDay as CVarArg)
+
+		request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [schedulePredicate, datePredicate])
+		request.fetchLimit = 1
+
+		do {
+			let count = try context.count(for: request)
+			return count > 0
+		} catch {
+			print("Failed to count trackers for date \(date): \(error)")
+			return false
+		}
+	}
+
 	func addTracker(_ tracker: Tracker, to category: TrackerCategory) throws {
 		let categoryEntity = try categoryStore.getOrCreateCategoryEntity(for: category)
 		try trackerStore.add(tracker, to: categoryEntity)
@@ -172,8 +197,8 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 		try saveContext()
 	}
 
-	func startObservingTrackers(for date: Date) {
-		let frc = trackerStore.makeFetchedResultsController(for: date)
+	func startObservingTrackers(for date: Date, completed: Bool? = nil) {
+		let frc = trackerStore.makeFetchedResultsController(for: date, completed: completed)
 		fetchedResultsController = frc
 		frc.delegate = self
 
