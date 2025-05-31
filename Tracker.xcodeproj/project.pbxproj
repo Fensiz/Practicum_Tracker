@@ -99,7 +99,7 @@
 				};
 			};
 			buildConfigurationList = F460DCF42DB4FFBB00C72CF2 /* Build configuration list for PBXProject "Tracker" */;
-			developmentRegion = en;
+			developmentRegion = ru;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
