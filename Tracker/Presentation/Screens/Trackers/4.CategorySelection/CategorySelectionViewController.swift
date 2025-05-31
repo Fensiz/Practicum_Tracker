@@ -118,10 +118,6 @@ final class CategorySelectionViewController: BaseViewController {
 		present(newCategoryVC, animated: true)
 	}
 
-	private func deleteCategory(at indexPath: IndexPath) {
-		viewModel.deleteCategory(at: indexPath.row)
-	}
-
 	private func editCategory(at indexPath: IndexPath) {
 		let oldCategory = viewModel.category(at: indexPath.row)
 		let editCategoryVC = CategoryViewController(mode: .editing(initialText: oldCategory.title))
@@ -154,6 +150,14 @@ final class CategorySelectionViewController: BaseViewController {
 		viewModel.onError = { [weak self] in
 			self?.showError($0)
 		}
+	}
+
+	private func showDeleteConfirmation(at indexPath: IndexPath) {
+		let alert = UIUtils.makeDeleteConfirmationAlert(message: "Are you sure this category is not needed?") { [weak self] in
+			self?.viewModel.deleteCategory(at: indexPath.row)
+		}
+
+		present(alert, animated: true)
 	}
 }
 
@@ -247,7 +251,7 @@ extension CategorySelectionViewController: UITableViewDataSource, UITableViewDel
 			guard let self else { return nil }
 
 			let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
-				self?.deleteCategory(at: indexPath)
+				self?.showDeleteConfirmation(at: indexPath)
 			}
 
 			let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { [weak self] _ in

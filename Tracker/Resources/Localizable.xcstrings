@@ -12,6 +12,28 @@
         }
       }
     },
+    "Are you sure this category is not needed?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта категория точно не нужна?"
+          }
+        }
+      }
+    },
+    "Are you sure you want to delete this tracker?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уверены, что хотите удалить этот трекер?"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -194,6 +194,14 @@ final class TrackersViewController: UIViewController {
 		collectionView.contentInset.bottom = 0
 		collectionView.scrollIndicatorInsets = collectionView.contentInset
 	}
+
+	private func showDeleteConfirmation(for tracker: Tracker) {
+		let alert = UIUtils.makeDeleteConfirmationAlert(message: "Are you sure you want to delete this tracker?") { [weak self] in
+			self?.presenter.deleteTracker(tracker)
+		}
+
+		present(alert, animated: true)
+	}
 }
 
 // MARK: - TrackerTypeSelectionDelegate
@@ -326,7 +334,7 @@ extension TrackersViewController: UICollectionViewDelegate {
 					image: nil,
 					attributes: .destructive
 				) { [weak self] _ in
-					self?.presenter.deleteTracker(tracker)
+					self?.showDeleteConfirmation(for: tracker)
 				}
 				let edit = UIAction(
 					title: String(localized: "Edit"),
