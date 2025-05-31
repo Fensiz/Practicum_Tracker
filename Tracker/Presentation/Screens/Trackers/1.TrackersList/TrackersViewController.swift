@@ -340,6 +340,7 @@ extension TrackersViewController: UICollectionViewDelegate {
 						presenter: editPresenter,
 						repository: self.presenter.repository,
 						type: tracker.schedule == nil ? .nonRegular : .habit,
+						dayCount: presenter.completedCount(for: tracker),
 						selectedTracker: tracker,
 						selectedCategory: trackerCategory,
 						currentDate: self.presenter.currentDate

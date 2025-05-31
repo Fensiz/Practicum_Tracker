@@ -116,7 +116,7 @@ final class TrackerCell: UICollectionViewCell {
 		emojiLabel.text = tracker.emoji
 		topContainerView.backgroundColor = tracker.color
 		addButton.backgroundColor = tracker.color
-		countLabel.text = daysText(count)
+		countLabel.text = Utils.daysText(count)
 		addButton.isEnabled = isActive
 
 		addButton.addAction(UIAction { [weak self] _ in
@@ -128,16 +128,6 @@ final class TrackerCell: UICollectionViewCell {
 	}
 
 	// MARK: - Private Methods
-
-	private func daysText(_ count: Int) -> String {
-		let daysText: String
-		switch count {
-			case 1: daysText = String(localized: "oneDay")
-			case 2...4: daysText = String(localized: "twoDays")
-			default: daysText = String(localized: "moreDays")
-		}
-		return "\(count) \(daysText)"
-	}
 
 	private func updateUI() {
 		if isCompleted {

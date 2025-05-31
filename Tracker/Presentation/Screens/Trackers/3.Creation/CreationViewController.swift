@@ -16,6 +16,7 @@ final class CreationViewController: BaseViewController {
 	private var isTextTooLong = false
 	private var currentDate: Date?
 	private let repository: TrackerRepositoryProtocol
+	private let dayCount: Int?
 
 	private let textField: UITextField = PaddedTextField(placeholder: "Enter tracker name")
 	private let tableView = UITableView(frame: .zero, style: .plain)
@@ -23,6 +24,7 @@ final class CreationViewController: BaseViewController {
 	private let cancelButton = AppButton(title: "Cancel", style: .outlined())
 	private let saveButton = AppButton(title: "Save")
 	private var stackView: UIStackView!
+	private var dayCountLabel: UILabel?
 
 	private var selectedCategory: TrackerCategory?
 	private var weekDays: Set<WeekDay>?
@@ -42,6 +44,7 @@ final class CreationViewController: BaseViewController {
 		presenter: CreationViewPresenterProtocol,
 		repository: TrackerRepositoryProtocol,
 		type: TrackerType,
+		dayCount: Int? = nil,
 		selectedTracker: Tracker? = nil,
 		selectedCategory: TrackerCategory? = nil,
 		currentDate: Date? = nil
@@ -58,6 +61,7 @@ final class CreationViewController: BaseViewController {
 		self.trackerType = type
 		self.currentDate = currentDate
 		self.repository = repository
+		self.dayCount = dayCount
 
 		let layout = UICollectionViewFlowLayout()
 		layout.scrollDirection = .vertical
@@ -142,8 +146,10 @@ final class CreationViewController: BaseViewController {
 
 		setupUI()
 		layoutUI()
-		screenTitle = trackerType == .habit ? "Новая привычка" : "Новое нерегулярное событие"
-		screenTitle = selectedTracker != nil ? "Создание привычки" : screenTitle
+		screenTitle = trackerType == .habit ? String(localized: "New habit") : String(localized: "New irregular event")
+		if selectedTracker != nil {
+			screenTitle = trackerType == .habit ? String(localized: "Edit habit") : String(localized: "Edit irregular event")
+		}
 	}
 
 	func addTracker(_ tracker: Tracker, toCategory category: TrackerCategory?) {
@@ -186,6 +192,16 @@ final class CreationViewController: BaseViewController {
 	}
 
 	private func setupUI() {
+		if let dayCount {
+			let label = UILabel()
+			label.translatesAutoresizingMaskIntoConstraints = false
+			label.font = .ypBold32
+			label.textColor = .ypBlack
+			label.textAlignment = .center
+			label.text = Utils.daysText(dayCount)
+			dayCountLabel = label
+			view.addSubview(label)
+		}
 
 		textField.addAction(UIAction { [weak self] _ in
 			let textCount = self?.textField.text?.count ?? 0
@@ -283,8 +299,22 @@ final class CreationViewController: BaseViewController {
 	}
 
 	private func layoutUI() {
+		if let dayCountLabel {
+			NSLayoutConstraint.activate([
+				dayCountLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
+				dayCountLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+				dayCountLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+				collectionView.topAnchor.constraint(equalTo: dayCountLabel.bottomAnchor, constant: 16)
+			])
+		} else {
+			NSLayoutConstraint.activate([
+				collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16)
+			])
+		}
+
 		NSLayoutConstraint.activate([
-			collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+//			collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
 			collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
 			collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 			collectionView.bottomAnchor.constraint(equalTo: stackView.topAnchor, constant: -16),

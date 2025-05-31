@@ -89,6 +89,28 @@
         }
       }
     },
+    "Edit habit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редактирование привычки"
+          }
+        }
+      }
+    },
+    "Edit irregular event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редактирование нерегулярного события"
+          }
+        }
+      }
+    },
     "Enter tracker name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -193,6 +215,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "дней"
+          }
+        }
+      }
+    },
+    "New habit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новая привычка"
+          }
+        }
+      }
+    },
+    "New irregular event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новое нерегулярное событие"
           }
         }
       }
