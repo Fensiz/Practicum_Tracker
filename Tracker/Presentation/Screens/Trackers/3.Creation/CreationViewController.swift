@@ -152,6 +152,16 @@ final class CreationViewController: BaseViewController {
 		}
 	}
 
+	override func viewDidAppear(_ animated: Bool) {
+		super.viewDidAppear(true)
+		AnalyticsService.logEvent(.open, screen: .trackerCreation)
+	}
+
+	override func viewDidDisappear(_ animated: Bool) {
+		super.viewDidDisappear(true)
+		AnalyticsService.logEvent(.close, screen: .trackerCreation)
+	}
+
 	func addTracker(_ tracker: Tracker, toCategory category: TrackerCategory?) {
 		guard let category else {
 			print("Категория не выбрана")

@@ -71,6 +71,16 @@ final class TrackersViewController: UIViewController {
 		presenter.onChange?()
 	}
 
+	override func viewDidAppear(_ animated: Bool) {
+		super.viewDidAppear(true)
+		AnalyticsService.logEvent(.open, screen: .main)
+	}
+
+	override func viewDidDisappear(_ animated: Bool) {
+		super.viewDidDisappear(true)
+		AnalyticsService.logEvent(.close, screen: .main)
+	}
+
 	// MARK: - Private Methods
 
 	private func setupUI() {
@@ -166,12 +176,14 @@ final class TrackersViewController: UIViewController {
 	}
 
 	private func showTrackerTypeSelection() {
+		AnalyticsService.logEvent(.click, screen: .main, item: .addTrack)
 		let formVC = TrackerTypeSelectionViewController()
 		formVC.delegate = self
 		present(formVC, animated: true)
 	}
 
 	private func showFilterOptions() {
+		AnalyticsService.logEvent(.click, screen: .main, item: .filter)
 		let vm = FilterOptionsViewModel(
 			selectedOption: presenter.filter,
 			delegate: presenter
@@ -335,6 +347,7 @@ extension TrackersViewController: UICollectionViewDelegate {
 					image: nil,
 					attributes: .destructive
 				) { [weak self] _ in
+					AnalyticsService.logEvent(.click, screen: .main, item: .delete)
 					self?.showDeleteConfirmation(for: tracker)
 				}
 				let edit = UIAction(
@@ -342,6 +355,7 @@ extension TrackersViewController: UICollectionViewDelegate {
 					image: nil
 				) { [weak self] _ in
 					guard let self else { return }
+					AnalyticsService.logEvent(.click, screen: .main, item: .edit)
 					let trackerCategory = self.presenter.visibleTrackers[indexPath.section]
 
 					let editPresenter = CreationViewPresenter()

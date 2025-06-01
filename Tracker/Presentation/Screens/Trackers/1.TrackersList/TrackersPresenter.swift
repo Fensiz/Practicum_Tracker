@@ -106,6 +106,7 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 	}
 
 	func toggleCompletion(for tracker: Tracker) {
+		AnalyticsService.logEvent(.click, screen: .main, item: .track)
 		do {
 			try repository.toggleRecord(for: tracker.id, on: currentDate)
 			onChange?()

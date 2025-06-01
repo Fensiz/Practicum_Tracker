@@ -54,6 +54,16 @@ final class TrackerTypeSelectionViewController: BaseViewController {
 		setupUI()
 	}
 
+	override func viewDidAppear(_ animated: Bool) {
+		super.viewDidAppear(true)
+		AnalyticsService.logEvent(.open, screen: .trackerTypeSelection)
+	}
+
+	override func viewDidDisappear(_ animated: Bool) {
+		super.viewDidDisappear(true)
+		AnalyticsService.logEvent(.close, screen: .trackerTypeSelection)
+	}
+
 	// MARK: - Private Methods
 
 	private func setupUI() {
