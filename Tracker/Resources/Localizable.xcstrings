@@ -621,6 +621,23 @@
         }
       }
     },
+    "There is nothing to analyze yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There is nothing to analyze yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Анализировать пока нечего"
+          }
+        }
+      }
+    },
     "Thursday" : {
       "comment" : "Дни недели",
       "extractionState" : "manual",

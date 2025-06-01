@@ -37,7 +37,9 @@ final class TabBarController: UITabBarController {
 			selectedImage: nil
 		)
 
-		let statisticViewController = StatisticViewController()
+		let statisticViewController = UINavigationController(
+			rootViewController: StatisticViewController()
+		)
 
 		statisticViewController.tabBarItem = UITabBarItem(
 			title: String(localized: "Statistics"),

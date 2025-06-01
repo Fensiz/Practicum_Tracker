@@ -38,7 +38,7 @@ final class TrackersEmptyView: UIView {
 	init(text: String, emoji: String = "💫") {
 		self.emoji = emoji
 		super.init(frame: .zero)
-		setup(text: text)
+		setup(text: String(localized: String.LocalizationValue(text)))
 	}
 
 	required init?(coder: NSCoder) {

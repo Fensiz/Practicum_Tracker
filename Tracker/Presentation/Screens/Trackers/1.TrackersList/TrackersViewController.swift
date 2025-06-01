@@ -31,8 +31,8 @@ final class TrackersViewController: UIViewController {
 		return collectionView
 	}()
 
-	private let dummyView = TrackersEmptyView(text: String(localized: "What would you like to track?"))
-	private let searchDummyView = TrackersEmptyView(text: String(localized: "Nothing found"), emoji: "🤔")
+	private let dummyView = TrackersEmptyView(text: "What would you like to track?")
+	private let searchDummyView = TrackersEmptyView(text: "Nothing found", emoji: "🤔")
 
 	private lazy var filterButton = {
 		let button = UIButton()
