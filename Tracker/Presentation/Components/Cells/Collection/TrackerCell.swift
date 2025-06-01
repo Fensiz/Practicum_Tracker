@@ -37,6 +37,13 @@ final class TrackerCell: UICollectionViewCell {
 		return label
 	}()
 
+	private let pinnedImageView: UIImageView = {
+		let imageView = UIImageView(image: UIImage(systemName: "pin.fill"))
+		imageView.contentMode = .scaleAspectFit
+		imageView.tintColor = .white
+		return imageView
+	}()
+
 	private let countLabel: UILabel = {
 		let label = UILabel()
 		label.font = .ypMedium12
@@ -108,9 +115,10 @@ final class TrackerCell: UICollectionViewCell {
 
 	// MARK: - Public Methods
 
-	func configure(with tracker: Tracker, count: Int, action: @escaping () -> Void, isCompleted: Bool, isActive: Bool) {
+	func configure(with tracker: Tracker, count: Int, action: @escaping () -> Void, isCompleted: Bool, isActive: Bool, isPinned: Bool = false) {
 		self.isCompleted = isCompleted
 		self.trackerColor = tracker.color
+		self.pinnedImageView.isHidden = !isPinned
 
 		nameLabel.text = tracker.name
 		emojiLabel.text = tracker.emoji
@@ -147,12 +155,13 @@ final class TrackerCell: UICollectionViewCell {
 
 		topContainerView.addSubview(emojiBackgroundView)
 		topContainerView.addSubview(nameLabel)
+		topContainerView.addSubview(pinnedImageView)
 		emojiBackgroundView.addSubview(emojiLabel)
 
 		bottomStack.addArrangedSubview(countLabel)
 		bottomStack.addArrangedSubview(addButton)
 
-		[topContainerView, bottomStack, emojiBackgroundView, emojiLabel, addButton, nameLabel].forEach {
+		[topContainerView, bottomStack, emojiBackgroundView, emojiLabel, addButton, nameLabel, pinnedImageView].forEach {
 			$0.translatesAutoresizingMaskIntoConstraints = false
 		}
 
@@ -166,6 +175,11 @@ final class TrackerCell: UICollectionViewCell {
 			emojiBackgroundView.leadingAnchor.constraint(equalTo: topContainerView.leadingAnchor, constant: Constants.trackerCellPadding),
 			emojiBackgroundView.widthAnchor.constraint(equalToConstant: Constants.trackerCellEmojiSize),
 			emojiBackgroundView.heightAnchor.constraint(equalToConstant: Constants.trackerCellEmojiSize),
+
+			pinnedImageView.centerYAnchor.constraint(equalTo: emojiBackgroundView.centerYAnchor),
+			pinnedImageView.trailingAnchor.constraint(equalTo: topContainerView.trailingAnchor, constant: -12),
+			pinnedImageView.heightAnchor.constraint(equalToConstant: 12),
+			pinnedImageView.widthAnchor.constraint(equalToConstant: 12),
 
 			emojiLabel.centerXAnchor.constraint(equalTo: emojiBackgroundView.centerXAnchor),
 			emojiLabel.centerYAnchor.constraint(equalTo: emojiBackgroundView.centerYAnchor),

@@ -68,7 +68,7 @@ final class TrackersViewController: UIViewController {
 		setupUI()
 		setupNavigationBar()
 		setupBindings()
-		updateEmptyState()
+		presenter.onChange?()
 	}
 
 	// MARK: - Private Methods
@@ -259,7 +259,8 @@ extension TrackersViewController: UICollectionViewDataSource {
 				self?.collectionView.reloadItems(at: [indexPath])
 			},
 			isCompleted: isCompleted,
-			isActive: presenter.isTrackerActionEnabled
+			isActive: presenter.isTrackerActionEnabled,
+			isPinned: tracker.isPinned
 		)
 		return cell
 	}
