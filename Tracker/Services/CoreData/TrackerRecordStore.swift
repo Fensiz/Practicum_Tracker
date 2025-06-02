@@ -52,7 +52,7 @@ final class TrackerRecordStore {
 	}
 
 	func fetchAll() throws -> [TrackerRecord] {
-		let request: NSFetchRequest<TrackerRecordCDEntity> = TrackerRecordCDEntity.fetchRequest()
+		let request = TrackerRecordCDEntity.fetchRequest()
 		let entities = try context.fetch(request)
 		return entities.compactMap { record(from: $0) }
 	}

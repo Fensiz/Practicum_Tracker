@@ -134,6 +134,13 @@ final class TrackerStore {
 		return frc
 	}
 
+	func hasAnyTracker() -> Bool {
+		let request = TrackerCDEntity.fetchRequest()
+		request.fetchLimit = 1
+		let result = try? context.fetch(request)
+		return result?.count ?? 0 > 0
+	}
+
 	private func fetchRequest(for id: UUID) -> NSFetchRequest<TrackerCDEntity> {
 		let request = TrackerCDEntity.fetchRequest()
 		request.predicate = NSPredicate(format: "id == %@", id as CVarArg)

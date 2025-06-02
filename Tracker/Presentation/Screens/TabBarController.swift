@@ -37,8 +37,9 @@ final class TabBarController: UITabBarController {
 			selectedImage: nil
 		)
 
+		let viewModel = StatisticViewModel(repository: repository)
 		let statisticViewController = UINavigationController(
-			rootViewController: StatisticViewController()
+			rootViewController: StatisticViewController(viewModel: viewModel)
 		)
 
 		statisticViewController.tabBarItem = UITabBarItem(

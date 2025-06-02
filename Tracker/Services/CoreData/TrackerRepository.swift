@@ -52,7 +52,7 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 
 			guard !notPinnedTrackers.isEmpty else { return nil }
 
-			return TrackerCategory(title: section.name, trackers: trackers)
+			return TrackerCategory(title: section.name, trackers: notPinnedTrackers)
 		}
 		if !pinned.isEmpty {
 			notPinnedCategories.insert(.init(title: String(localized: "Pinned"), trackers: pinned), at: 0)
@@ -222,5 +222,15 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 extension TrackerRepository: NSFetchedResultsControllerDelegate {
 	func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
 		delegate?.trackerStoreDidChangeContent()
+	}
+}
+
+extension TrackerRepository: TrackerRepositoryStatsProtocol {
+	func containAnyTracker() -> Bool {
+		trackerStore.hasAnyTracker()
+	}
+
+	func trackersCompletedAllTime() -> Int {
+		(try? recordStore.fetchAll().count) ?? 0
 	}
 }
