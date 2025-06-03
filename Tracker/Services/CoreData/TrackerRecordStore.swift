@@ -57,6 +57,10 @@ final class TrackerRecordStore {
 		return entities.compactMap { record(from: $0) }
 	}
 
+	func fetchAllRecords() -> [TrackerRecord] {
+		(try? fetchAll()) ?? []
+	}
+
 	// MARK: - Private
 
 	private func record(from entity: TrackerRecordCDEntity) -> TrackerRecord? {

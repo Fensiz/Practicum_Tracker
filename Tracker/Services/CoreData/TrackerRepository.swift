@@ -233,4 +233,46 @@ extension TrackerRepository: TrackerRepositoryStatsProtocol {
 	func trackersCompletedAllTime() -> Int {
 		(try? recordStore.fetchAll().count) ?? 0
 	}
+
+	func countOfFullCompletionDays() -> Int {
+		let calendar = Calendar.current
+
+		// Все трекеры
+		let trackerModels = trackerStore.fetchAllTrackers()
+
+		// Все записи
+		let records = recordStore.fetchAllRecords()
+
+		// Группируем по дате
+		let groupedByDayRecords = Dictionary(grouping: records) { record in
+			calendar.startOfDay(for: record.date)
+		}
+
+		var completedDaysCount = 0
+
+		for (day, recordsForDay) in groupedByDayRecords {
+			// 1. Актуальные трекеры на эту дату
+			let activeTrackersForDate = trackerModels.filter { tracker in
+				if let schedule = tracker.schedule {
+					let weekday = WeekDay.from(date: day)
+					return schedule.contains(weekday)
+				} else if let date = tracker.date {
+					// Для нерегулярных — сравнение по дате
+					return calendar.isDate(day, inSameDayAs: date)
+				}
+				return false
+			}
+
+			// 2. Завершённые трекеры в эту дату
+			let completedTrackers = Set(recordsForDay.compactMap { $0.id })
+
+			// 3. Проверка: все ли активные трекеры завершены
+			let activeIDs = Set(activeTrackersForDate.map { $0.id })
+			if activeIDs.isSubset(of: completedTrackers), !activeIDs.isEmpty {
+				completedDaysCount += 1
+			}
+		}
+
+		return completedDaysCount
+	}
 }

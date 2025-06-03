@@ -28,7 +28,7 @@ final class StatisticViewModel {
 	}
 
 	func completedDays() -> Int {
-		0
+		repository.countOfFullCompletionDays()
 	}
 
 	func trackersCompleted() -> Int {

@@ -141,6 +141,12 @@ final class TrackerStore {
 		return result?.count ?? 0 > 0
 	}
 
+	func fetchAllTrackers() -> [Tracker] {
+		let trackers = (try? context.fetch(TrackerCDEntity.fetchRequest())) ?? []
+		let trackerModels = trackers.compactMap { tracker(from: $0) }
+		return trackerModels
+	}
+
 	private func fetchRequest(for id: UUID) -> NSFetchRequest<TrackerCDEntity> {
 		let request = TrackerCDEntity.fetchRequest()
 		request.predicate = NSPredicate(format: "id == %@", id as CVarArg)

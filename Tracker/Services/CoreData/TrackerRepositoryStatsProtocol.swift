@@ -8,4 +8,5 @@
 protocol TrackerRepositoryStatsProtocol {
 	func containAnyTracker() -> Bool
 	func trackersCompletedAllTime() -> Int
+	func countOfFullCompletionDays() -> Int
 }
