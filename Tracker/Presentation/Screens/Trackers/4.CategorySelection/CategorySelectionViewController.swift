@@ -16,15 +16,15 @@ final class CategorySelectionViewController: BaseViewController {
 	private let addButton = AppButton(title: "Добавить категорию")
 	private let scrollView = UIScrollView()
 	private let contentView = UIView()
-
-	private let presenter: CategorySelectionPresenterProtocol
+	private var viewModel: CategorySelectionViewModel
 	private var tableViewHeightConstraint: NSLayoutConstraint?
 
 	// MARK: - Init
 
-	init(presenter: CategorySelectionPresenterProtocol) {
-		self.presenter = presenter
+	init(viewModel: CategorySelectionViewModel) {
+		self.viewModel = viewModel
 		super.init(nibName: nil, bundle: nil)
+		self.bind()
 	}
 
 	required init?(coder: NSCoder) {
@@ -38,7 +38,7 @@ final class CategorySelectionViewController: BaseViewController {
 		screenTitle = "Категория"
 
 		setupUI()
-		presenter.viewDidLoad()
+		viewModel.viewDidLoad()
 		firstUpdateUI()
 		tableView.reloadData()
 	}
@@ -57,7 +57,7 @@ final class CategorySelectionViewController: BaseViewController {
 		tableView.backgroundColor = .ypCellBack
 		tableView.layer.cornerRadius = Constants.cornerRadius
 		tableView.separatorColor = .ypGray
-		tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+		tableView.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.reuseIdentifier)
 
 		view.addSubview(emptyView)
 		view.addSubview(scrollView)
@@ -90,18 +90,18 @@ final class CategorySelectionViewController: BaseViewController {
 			addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 			addButton.heightAnchor.constraint(equalToConstant: 60),
 		])
-		tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.tableViewCellHeight * CGFloat(presenter.numberOfCategories))
+		tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.tableViewCellHeight * CGFloat(viewModel.numberOfCategories))
 		tableViewHeightConstraint?.isActive = true
 	}
 
 	// MARK: - Private Methods
 
 	private func firstUpdateUI() {
-		let isEmpty = presenter.numberOfCategories == 0
+		let isEmpty = viewModel.numberOfCategories == 0
 		tableView.isHidden = isEmpty
 		emptyView.isHidden = !isEmpty
 
-		let newHeight = CGFloat(presenter.numberOfCategories) * Constants.tableViewCellHeight
+		let newHeight = CGFloat(viewModel.numberOfCategories) * Constants.tableViewCellHeight
 		tableViewHeightConstraint?.constant = newHeight
 	}
 
@@ -119,21 +119,48 @@ final class CategorySelectionViewController: BaseViewController {
 	}
 
 	private func deleteCategory(at indexPath: IndexPath) {
-		presenter.deleteCategory(at: indexPath.row)
+		viewModel.deleteCategory(at: indexPath.row)
 	}
 
 	private func editCategory(at indexPath: IndexPath) {
-		let oldCategory = presenter.category(at: indexPath.row)
+		let oldCategory = viewModel.category(at: indexPath.row)
 		let editCategoryVC = CategoryViewController(mode: .editing(initialText: oldCategory.title))
 		editCategoryVC.delegate = self
 		present(editCategoryVC, animated: true)
 	}
+
+	private func bind() {
+		bindViewUpdates()
+		bindNavigationEvents()
+		bindErrors()
+	}
+
+	private func bindViewUpdates() {
+		viewModel.onUpdate = { [weak self] in
+			self?.updateCategories()
+		}
+		viewModel.onBatchUpdate = { [weak self] insert, delete, reload in
+			self?.performBatchUpdate(insert: insert, delete: delete, reload: reload)
+		}
+	}
+
+	private func bindNavigationEvents() {
+		viewModel.onDismiss = { [weak self] in
+			self?.dismissView()
+		}
+	}
+
+	private func bindErrors() {
+		viewModel.onError = { [weak self] in
+			self?.showError($0)
+		}
+	}
 }
 
-// MARK: - View Protocol
+// MARK: - Bindings
 
-extension CategorySelectionViewController: CategorySelectionViewProtocol {
-	func updateCategories(_ categories: [TrackerCategory]) {
+private extension CategorySelectionViewController {
+	func updateCategories() {
 		tableView.reloadSections(IndexSet(integer: 0), with: .automatic)
 		updateUI()
 	}
@@ -167,7 +194,7 @@ extension CategorySelectionViewController: CategorySelectionViewProtocol {
 
 extension CategorySelectionViewController: CategoryViewControllerDelegate {
 	func categoryExists(with title: String) -> Bool {
-		return presenter.categoryExists(with: title)
+		return viewModel.categoryExists(with: title)
 	}
 
 	func didFinish(with title: String, mode: CategoryViewController.Mode) {
@@ -180,11 +207,11 @@ extension CategorySelectionViewController: CategoryViewControllerDelegate {
 	}
 
 	private func didAddNewCategory(with title: String) {
-		presenter.addCategory(title: title)
+		viewModel.addCategory(title: title)
 	}
 
 	private func didEditCategory(with oldTitle: String, newTitle: String) {
-		presenter.editCategory(oldTitle: oldTitle, newTitle: newTitle)
+		viewModel.editCategory(oldTitle: oldTitle, newTitle: newTitle)
 	}
 }
 
@@ -192,32 +219,23 @@ extension CategorySelectionViewController: CategoryViewControllerDelegate {
 
 extension CategorySelectionViewController: UITableViewDataSource, UITableViewDelegate {
 	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		presenter.numberOfCategories
+		viewModel.numberOfCategories
 	}
 
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-		let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-		cell.backgroundColor = .ypCellBack
-		let category = presenter.category(at: indexPath.row)
-		cell.textLabel?.text = category.title
-
-		if category == presenter.selectedCategory {
-			cell.accessoryType = .checkmark
-		} else {
-			cell.accessoryType = .none
+		guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as? CategoryCell else {
+			assertionFailure("Ячейка не найдена")
+			return UITableViewCell()
 		}
-
-		if indexPath.row == presenter.numberOfCategories - 1 {
-			cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
-		} else {
-			cell.separatorInset = UIEdgeInsets(top: 0, left: Constants.commonPadding, bottom: 0, right: Constants.commonPadding)
-		}
-
+		let category = viewModel.category(at: indexPath.row)
+		let isLast = indexPath.row == viewModel.numberOfCategories - 1
+		let isSelected = category == viewModel.selectedCategory
+		cell.configure(with: category.title, isSelected: isSelected, isLast: isLast)
 		return cell
 	}
 
 	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-		presenter.didSelectCategory(at: indexPath.row)
+		viewModel.didSelectCategory(at: indexPath.row)
 	}
 
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

@@ -81,6 +81,35 @@ final class TrackerStore {
 		return entity
 	}
 
+	func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerCDEntity> {
+		let request: NSFetchRequest<TrackerCDEntity> = TrackerCDEntity.fetchRequest()
+
+		let calendar = Calendar.current
+		let startOfDay = calendar.startOfDay(for: date)
+
+		guard let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+			fatalError("Unable to calculate next day for FRC predicate")
+		}
+		let weekdayRaw = WeekDay.from(date: date).rawValue
+
+		let schedulePredicate = NSPredicate(format: "schedule CONTAINS %@", "\(weekdayRaw)")
+		let datePredicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as CVarArg, nextDay as CVarArg)
+		request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [schedulePredicate, datePredicate])
+		request.sortDescriptors = [
+			NSSortDescriptor(key: "category.title", ascending: true),
+			NSSortDescriptor(key: "name", ascending: true)
+		]
+
+		let frc = NSFetchedResultsController(
+			fetchRequest: request,
+			managedObjectContext: context,
+			sectionNameKeyPath: "category.title",
+			cacheName: nil
+		)
+
+		return frc
+	}
+
 	private func fetchRequest(for id: UUID) -> NSFetchRequest<TrackerCDEntity> {
 		let request = TrackerCDEntity.fetchRequest()
 		request.predicate = NSPredicate(format: "id == %@", id as CVarArg)

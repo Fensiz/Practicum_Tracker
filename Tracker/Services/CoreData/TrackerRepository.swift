@@ -151,12 +151,12 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 	}
 
 	func startObservingTrackers(for date: Date) {
-		let frc = makeFetchedResultsController(for: date)
+		let frc = trackerStore.makeFetchedResultsController(for: date)
+		fetchedResultsController = frc
 		frc.delegate = self
 
 		do {
 			try frc.performFetch()
-			self.fetchedResultsController = frc
 			self.delegate?.trackerStoreDidChangeContent()
 		} catch {
 			print("❌ Failed to fetch trackers: \(error)")
@@ -164,31 +164,6 @@ final class TrackerRepository: NSObject, TrackerRepositoryProtocol {
 	}
 
 	// MARK: - Private Methods
-
-	private func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerCDEntity> {
-		let request: NSFetchRequest<TrackerCDEntity> = TrackerCDEntity.fetchRequest()
-
-		let calendar = Calendar.current
-		let startOfDay = calendar.startOfDay(for: date)
-
-		let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-		let weekdayRaw = WeekDay.from(date: date).rawValue
-
-		let schedulePredicate = NSPredicate(format: "schedule CONTAINS %@", "\(weekdayRaw)")
-		let datePredicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as CVarArg, nextDay as CVarArg)
-		request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [schedulePredicate, datePredicate])
-		request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
-
-		let frc = NSFetchedResultsController(
-			fetchRequest: request,
-			managedObjectContext: context,
-			sectionNameKeyPath: "category.title",
-			cacheName: nil
-		)
-
-		self.fetchedResultsController = frc
-		return frc
-	}
 
 	private func saveContext() throws {
 		if context.hasChanges {
