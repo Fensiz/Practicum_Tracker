@@ -18,7 +18,6 @@ protocol TrackersPresenterProtocol: FilterOptionSelectionDelegate {
 	var filter: Option { get }
 	var isDayHasTrackers: Bool { get }
 
-	func fetchCategories() -> [TrackerCategory]
 	func updateDate(_ date: Date)
 	func toggleCompletion(for tracker: Tracker)
 	func isTrackerCompleted(_ tracker: Tracker) -> Bool

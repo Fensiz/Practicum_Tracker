@@ -123,10 +123,6 @@ final class TrackersPresenter: TrackersPresenterProtocol {
 		(doTry { try repository.completedCount(for: tracker.id) }) ?? 0
 	}
 
-	func fetchCategories() -> [TrackerCategory] {
-		repository.fetchAllCategories()
-	}
-
 	func deleteTracker(_ tracker: Tracker) {
 		do {
 			try repository.deleteTracker(id: tracker.id)

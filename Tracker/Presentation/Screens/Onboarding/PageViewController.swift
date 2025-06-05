@@ -146,7 +146,3 @@ extension PageViewController: UIPageViewControllerDelegate {
 		pageControl.currentPage = index
 	}
 }
-
-//#Preview {
-//	PageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
-//}
