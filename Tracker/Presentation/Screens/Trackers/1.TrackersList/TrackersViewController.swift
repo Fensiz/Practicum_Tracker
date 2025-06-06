@@ -13,6 +13,8 @@ final class TrackersViewController: UIViewController {
 	private var contextMenuIndexPath: IndexPath?
 	private var presenter: TrackersPresenterProtocol
 
+	private let datePicker = UIDatePicker()
+
 	private lazy var collectionView: UICollectionView = {
 		let layout = UICollectionViewFlowLayout()
 		let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -29,13 +31,30 @@ final class TrackersViewController: UIViewController {
 		return collectionView
 	}()
 
-	private let dummyView = TrackersEmptyView(text: "Что будем отслеживать?")
+	private let dummyView = TrackersEmptyView(text: "What would you like to track?")
+	private let searchDummyView = TrackersEmptyView(text: "Nothing found", emoji: "🤔")
+
+	private lazy var filterButton = {
+		let button = UIButton()
+		button.setTitle(String(localized: "Filters"), for: .normal)
+		button.layer.backgroundColor = UIColor.ypBlue.cgColor
+		button.layer.cornerRadius = Constants.cornerRadius
+		let action = UIAction { [weak self] _ in
+			self?.showFilterOptions()
+		}
+		button.addAction(action, for: .touchUpInside)
+		button.translatesAutoresizingMaskIntoConstraints = false
+		return button
+	}()
 
 	// MARK: - Init
 
 	init(presenter: TrackersPresenterProtocol) {
 		self.presenter = presenter
 		super.init(nibName: nil, bundle: nil)
+		self.presenter.onChangeDate = { [weak self] date in
+			self?.datePicker.setDate(date, animated: true)
+		}
 	}
 
 	required init?(coder: NSCoder) {
@@ -49,17 +68,30 @@ final class TrackersViewController: UIViewController {
 		setupUI()
 		setupNavigationBar()
 		setupBindings()
-		updateEmptyState()
+		presenter.onChange?()
+	}
+
+	override func viewDidAppear(_ animated: Bool) {
+		super.viewDidAppear(true)
+		AnalyticsService.logEvent(.open, screen: .main)
+	}
+
+	override func viewDidDisappear(_ animated: Bool) {
+		super.viewDidDisappear(true)
+		AnalyticsService.logEvent(.close, screen: .main)
 	}
 
 	// MARK: - Private Methods
 
 	private func setupUI() {
-		title = "Трекеры"
+		title = String(localized: "Trackers")
 		view.addSubview(dummyView)
+		view.addSubview(searchDummyView)
 		view.addSubview(collectionView)
+		view.addSubview(filterButton)
 
 		dummyView.translatesAutoresizingMaskIntoConstraints = false
+		searchDummyView.translatesAutoresizingMaskIntoConstraints = false
 
 		NSLayoutConstraint.activate([
 			collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -69,6 +101,14 @@ final class TrackersViewController: UIViewController {
 
 			dummyView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
 			dummyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+			searchDummyView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+			searchDummyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+			filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+			filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+			filterButton.widthAnchor.constraint(equalToConstant: 114),
+			filterButton.heightAnchor.constraint(equalToConstant: 50),
 		])
 	}
 
@@ -80,7 +120,6 @@ final class TrackersViewController: UIViewController {
 		navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .add, primaryAction: addAction)
 		navigationItem.leftBarButtonItem?.tintColor = .ypBlack
 
-		let datePicker = UIDatePicker()
 		datePicker.backgroundColor = .white
 		datePicker.layer.cornerRadius = 8
 		datePicker.layer.masksToBounds = true
@@ -88,7 +127,8 @@ final class TrackersViewController: UIViewController {
 		datePicker.datePickerMode = .date
 		datePicker.preferredDatePickerStyle = .compact
 		datePicker.addAction(UIAction { [weak self] _ in
-			self?.presenter.updateDate(datePicker.date)
+			guard let self else { return }
+			self.presenter.updateDate(self.datePicker.date)
 		}, for: .valueChanged)
 
 		navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
@@ -99,7 +139,7 @@ final class TrackersViewController: UIViewController {
 		searchController.searchResultsUpdater = self
 		if let textField = searchController.searchBar.value(forKey: "searchField") as? UITextField {
 			textField.attributedPlaceholder = NSAttributedString(
-				string: "Поиск",
+				string: String(localized: "Search"),
 				attributes: [ .foregroundColor: UIColor.ypPlaceholder ]
 			)
 		}
@@ -113,19 +153,67 @@ final class TrackersViewController: UIViewController {
 
 	private func setupBindings() {
 		presenter.onChange = { [weak self] in
-			self?.updateEmptyState()
-			self?.collectionView.reloadData()
+			guard let self else { return }
+			if self.presenter.isDayHasTrackers {
+				self.showFilterButton()
+			} else {
+				self.hideFilterButton()
+			}
+			self.updateEmptyState()
+			self.collectionView.reloadData()
 		}
 	}
 
 	private func updateEmptyState() {
-		dummyView.isHidden = !presenter.visibleTrackers.isEmpty
+		let hasSearchText = !presenter.searchText.isEmpty
+		let hasVisibleTrackers = !presenter.visibleTrackers.isEmpty
+		let filterIsSet = !(presenter.filter == .allTrackers)
+
+		let dummyViewShowCondition = !hasVisibleTrackers && !hasSearchText && !filterIsSet
+		let searchDummyViewShowCondition = !hasVisibleTrackers && (hasSearchText || filterIsSet)
+
+		dummyView.isHidden = !dummyViewShowCondition
+		searchDummyView.isHidden = !searchDummyViewShowCondition
 	}
 
 	private func showTrackerTypeSelection() {
+		AnalyticsService.logEvent(.click, screen: .main, item: .addTrack)
 		let formVC = TrackerTypeSelectionViewController()
 		formVC.delegate = self
 		present(formVC, animated: true)
+	}
+
+	private func showFilterOptions() {
+		AnalyticsService.logEvent(.click, screen: .main, item: .filter)
+		let vm = FilterOptionsViewModel(
+			selectedOption: presenter.filter,
+			delegate: presenter
+		)
+		let vc = FilterOptionsViewController(viewModel: vm)
+
+		present(vc, animated: true)
+	}
+
+	private func showFilterButton() {
+		filterButton.isHidden = false
+
+		collectionView.contentInset.bottom = filterButton.frame.height + 16
+		collectionView.scrollIndicatorInsets = collectionView.contentInset
+	}
+
+	private func hideFilterButton() {
+		filterButton.isHidden = true
+
+		collectionView.contentInset.bottom = 0
+		collectionView.scrollIndicatorInsets = collectionView.contentInset
+	}
+
+	private func showDeleteConfirmation(for tracker: Tracker) {
+		let alert = UIUtils.makeDeleteConfirmationAlert(message: "Are you sure you want to delete this tracker?") { [weak self] in
+			self?.presenter.deleteTracker(tracker)
+		}
+
+		present(alert, animated: true)
 	}
 }
 
@@ -184,7 +272,8 @@ extension TrackersViewController: UICollectionViewDataSource {
 				self?.collectionView.reloadItems(at: [indexPath])
 			},
 			isCompleted: isCompleted,
-			isActive: presenter.isTrackerActionEnabled
+			isActive: presenter.isTrackerActionEnabled,
+			isPinned: tracker.isPinned
 		)
 		return cell
 	}
@@ -250,18 +339,24 @@ extension TrackersViewController: UICollectionViewDelegate {
 			identifier: indexPath as NSCopying,
 			previewProvider: nil,
 			actionProvider: { _ in
+				let title = tracker.isPinned ? String(localized: "Unpin") : String(localized: "Pin")
+				let pin = UIAction(title: title) { [weak self] _ in
+					self?.presenter.togglePinned(for: tracker)
+				}
 				let delete = UIAction(
-					title: "Удалить",
+					title: String(localized: "Delete"),
 					image: nil,
 					attributes: .destructive
 				) { [weak self] _ in
-					self?.presenter.deleteTracker(tracker)
+					AnalyticsService.logEvent(.click, screen: .main, item: .delete)
+					self?.showDeleteConfirmation(for: tracker)
 				}
 				let edit = UIAction(
-					title: "Редактировать",
+					title: String(localized: "Edit"),
 					image: nil
 				) { [weak self] _ in
 					guard let self else { return }
+					AnalyticsService.logEvent(.click, screen: .main, item: .edit)
 					let trackerCategory = self.presenter.visibleTrackers[indexPath.section]
 
 					let editPresenter = CreationViewPresenter()
@@ -269,13 +364,14 @@ extension TrackersViewController: UICollectionViewDelegate {
 						presenter: editPresenter,
 						repository: self.presenter.repository,
 						type: tracker.schedule == nil ? .nonRegular : .habit,
+						dayCount: presenter.completedCount(for: tracker),
 						selectedTracker: tracker,
 						selectedCategory: trackerCategory,
 						currentDate: self.presenter.currentDate
 					)
 					self.present(editVC, animated: true)
 				}
-				return UIMenu(title: "", children: [edit, delete])
+				return UIMenu(title: "", children: [pin, edit, delete])
 			}
 		)
 	}

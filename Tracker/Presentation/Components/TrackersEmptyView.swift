@@ -26,20 +26,23 @@ final class TrackersEmptyView: UIView {
 		return label
 	}()
 
-	private let imageView: UIImageView = {
-		let emoji = "💫"
+	private lazy var imageView: UIImageView = {
 		let emojiImage = ImageUtils.emojiToGrayscaleImage(emoji: emoji, font: .systemFont(ofSize: 60))
 		let imageView = UIImageView(image: emojiImage)
 		imageView.translatesAutoresizingMaskIntoConstraints = false
 		return imageView
 	}()
 
-	init(text: String) {
+	private let emoji: String
+
+	init(text: String, emoji: String = "💫") {
+		self.emoji = emoji
 		super.init(frame: .zero)
-		setup(text: text)
+		setup(text: String(localized: String.LocalizationValue(text)))
 	}
 
 	required init?(coder: NSCoder) {
+		self.emoji = "💫"
 		super.init(coder: coder)
 		setup()
 	}

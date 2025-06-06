@@ -37,7 +37,7 @@ final class CategorySelectionViewModel {
 	}
 
 	func categoryExists(with title: String) -> Bool {
-		categories.contains { $0.title.caseInsensitiveCompare(title) == .orderedSame }
+		categories.contains { $0.title.caseInsensitiveCompare(title) == .orderedSame } || title == "Pinned" || title == "Закрепленные"
 	}
 
 	func addCategory(title: String) {

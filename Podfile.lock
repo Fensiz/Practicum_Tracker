@@ -1,0 +1,143 @@
+PODS:
+  - AppMetricaAdSupport (5.11.0):
+    - AppMetricaCore (= 5.11.0)
+    - AppMetricaCoreExtension (= 5.11.0)
+  - AppMetricaAnalytics (5.11.0):
+    - AppMetricaAdSupport (= 5.11.0)
+    - AppMetricaCore (= 5.11.0)
+    - AppMetricaCrashes (= 5.11.0)
+    - AppMetricaScreenshot (= 5.11.0)
+    - AppMetricaWebKit (= 5.11.0)
+  - AppMetricaCore (5.11.0):
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaEncodingUtils (= 5.11.0)
+    - AppMetricaFMDB (= 5.11.0)
+    - AppMetricaHostState (= 5.11.0)
+    - AppMetricaIdentifiers (= 5.11.0)
+    - AppMetricaKeychain (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+    - AppMetricaNetwork (= 5.11.0)
+    - AppMetricaPlatform (= 5.11.0)
+    - AppMetricaProtobuf (= 5.11.0)
+    - AppMetricaProtobufUtils (= 5.11.0)
+    - AppMetricaStorageUtils (= 5.11.0)
+  - AppMetricaCoreExtension (5.11.0):
+    - AppMetricaCore (= 5.11.0)
+    - AppMetricaStorageUtils (= 5.11.0)
+  - AppMetricaCoreUtils (5.11.0):
+    - AppMetricaLog (= 5.11.0)
+  - AppMetricaCrashes (5.11.0):
+    - AppMetricaCore (= 5.11.0)
+    - AppMetricaCoreExtension (= 5.11.0)
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaEncodingUtils (= 5.11.0)
+    - AppMetricaHostState (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+    - AppMetricaPlatform (= 5.11.0)
+    - AppMetricaProtobufUtils (= 5.11.0)
+    - AppMetricaStorageUtils (= 5.11.0)
+    - KSCrash/Recording (< 2.1.0, >= 2.0.0)
+  - AppMetricaEncodingUtils (5.11.0):
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+    - AppMetricaPlatform (= 5.11.0)
+  - AppMetricaFMDB (5.11.0)
+  - AppMetricaHostState (5.11.0):
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+  - AppMetricaIdentifiers (5.11.0):
+    - AppMetricaKeychain (= 5.11.0)
+    - AppMetricaLogSwift (= 5.11.0)
+    - AppMetricaPlatform (= 5.11.0)
+    - AppMetricaStorageUtils (= 5.11.0)
+    - AppMetricaSynchronization (= 5.11.0)
+  - AppMetricaKeychain (5.11.0):
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+    - AppMetricaStorageUtils (= 5.11.0)
+  - AppMetricaLog (5.11.0)
+  - AppMetricaLogSwift (5.11.0):
+    - AppMetricaLog (= 5.11.0)
+  - AppMetricaNetwork (5.11.0):
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+    - AppMetricaPlatform (= 5.11.0)
+  - AppMetricaPlatform (5.11.0):
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+  - AppMetricaProtobuf (5.11.0)
+  - AppMetricaProtobufUtils (5.11.0):
+    - AppMetricaProtobuf (= 5.11.0)
+  - AppMetricaScreenshot (5.11.0):
+    - AppMetricaCore (= 5.11.0)
+    - AppMetricaCoreExtension (= 5.11.0)
+  - AppMetricaStorageUtils (5.11.0):
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+  - AppMetricaSynchronization (5.11.0):
+    - AppMetricaLogSwift (= 5.11.0)
+  - AppMetricaWebKit (5.11.0):
+    - AppMetricaCore (= 5.11.0)
+    - AppMetricaCoreUtils (= 5.11.0)
+    - AppMetricaLog (= 5.11.0)
+  - KSCrash/Core (2.0.0)
+  - KSCrash/Recording (2.0.0):
+    - KSCrash/RecordingCore
+  - KSCrash/RecordingCore (2.0.0):
+    - KSCrash/Core
+
+DEPENDENCIES:
+  - AppMetricaAnalytics (~> 5.11.0)
+
+SPEC REPOS:
+  trunk:
+    - AppMetricaAdSupport
+    - AppMetricaAnalytics
+    - AppMetricaCore
+    - AppMetricaCoreExtension
+    - AppMetricaCoreUtils
+    - AppMetricaCrashes
+    - AppMetricaEncodingUtils
+    - AppMetricaFMDB
+    - AppMetricaHostState
+    - AppMetricaIdentifiers
+    - AppMetricaKeychain
+    - AppMetricaLog
+    - AppMetricaLogSwift
+    - AppMetricaNetwork
+    - AppMetricaPlatform
+    - AppMetricaProtobuf
+    - AppMetricaProtobufUtils
+    - AppMetricaScreenshot
+    - AppMetricaStorageUtils
+    - AppMetricaSynchronization
+    - AppMetricaWebKit
+    - KSCrash
+
+SPEC CHECKSUMS:
+  AppMetricaAdSupport: 6741fd5530fbb888b307c166c621f133d09c1249
+  AppMetricaAnalytics: 1ddff726439ac5ed1c5d3e6725a60d9c23c7b2d1
+  AppMetricaCore: e0ae0efe409ab3e0f6decc5bd2e7c2cbac3322ef
+  AppMetricaCoreExtension: 6ea0f2e447ffde47ce881901bb3484b6015be770
+  AppMetricaCoreUtils: eddb6c845c9a0ee5cc287e573073a1d22bf61f55
+  AppMetricaCrashes: 41cfdab4bf3c5e870bdd7ea2841f2e6705cbf203
+  AppMetricaEncodingUtils: 61a373a6b7146571672a920546bc1a8e330a0d15
+  AppMetricaFMDB: 856551ae318f26b7bd2147b46ad91c52745fed0a
+  AppMetricaHostState: 0d93059e9a3e820e1f0a5bc9c5b25d9aaf9eb6b8
+  AppMetricaIdentifiers: 1e03645ec5a839437bcc3d3cf4b79b516e865e02
+  AppMetricaKeychain: 23db87a250bd994aaa6103574ea8a264fcdc93e6
+  AppMetricaLog: b5128f3f632dd6274e3f0ed8e9602f950b697a5a
+  AppMetricaLogSwift: 28e37430577148c4da31272358b5d4b0e30abf5d
+  AppMetricaNetwork: bf7abc290d5c348ecfd55c987e145ef03b8b21aa
+  AppMetricaPlatform: 14891479a9a8aaaf22dacf2570f18b10b5772c3a
+  AppMetricaProtobuf: 2bfcbb5f078c9671e20726595abe7e9acae1333c
+  AppMetricaProtobufUtils: e39acfd71482476ed4832b2114e466723c70ce28
+  AppMetricaScreenshot: 9cc462e69888624951aba64641391a12a7c16072
+  AppMetricaStorageUtils: 8401aa2bf574040a3fcac275522ce1532c0a31ab
+  AppMetricaSynchronization: 7b06e3183f0fd6b5b76d47559181a369992af0d3
+  AppMetricaWebKit: 3e042d2d7efc9f49c1cd80f34965dcacb6466596
+  KSCrash: ad271a7799f0a2841be0fb7d6bd105444c440832
+
+PODFILE CHECKSUM: 2f84d3b34c3656bfd586cb88d53828932bb3497c
+
+COCOAPODS: 1.16.2

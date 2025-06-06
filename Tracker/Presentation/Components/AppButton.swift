@@ -41,7 +41,7 @@ final class AppButton: UIButton {
 	init(title: String, style: AppButtonStyle = .filled()) {
 		super.init(frame: .zero)
 		self.style = style
-		configure(title: title, style: style)
+		configure(title: String(localized: String.LocalizationValue(title)), style: style)
 	}
 
 	required init?(coder: NSCoder) {

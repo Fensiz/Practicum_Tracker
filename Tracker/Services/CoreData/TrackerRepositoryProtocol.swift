@@ -21,5 +21,7 @@ protocol TrackerRepositoryProtocol {
 	func getCategory(by title: String) throws -> TrackerCategory?
 	func editCategoryTitle(from old: TrackerCategory, to newTitle: String) throws
 	func updateTracker(_ tracker: Tracker, in newCategory: TrackerCategory) throws
-	func startObservingTrackers(for date: Date)
+	func startObservingTrackers(for date: Date, completed: Bool?)
+	func togglePinnedTracker(id: UUID) throws
+	func isDayHasTrackers(_ date: Date) -> Bool
 }

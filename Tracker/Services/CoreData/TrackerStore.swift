@@ -25,6 +25,7 @@ final class TrackerStore {
 		entity.schedule = tracker.scheduleString
 		entity.date = tracker.date
 		entity.category = categoryEntity
+		entity.isPinned = tracker.isPinned
 	}
 
 	func delete(_ trackerID: UUID) throws {
@@ -68,7 +69,8 @@ final class TrackerStore {
 			color: color,
 			emoji: emoji,
 			schedule: schedule,
-			date: entity.date
+			date: entity.date,
+			isPinned: entity.isPinned
 		)
 	}
 	
@@ -81,7 +83,7 @@ final class TrackerStore {
 		return entity
 	}
 
-	func makeFetchedResultsController(for date: Date) -> NSFetchedResultsController<TrackerCDEntity> {
+	func makeFetchedResultsController(for date: Date, completed: Bool? = nil) -> NSFetchedResultsController<TrackerCDEntity> {
 		let request: NSFetchRequest<TrackerCDEntity> = TrackerCDEntity.fetchRequest()
 
 		let calendar = Calendar.current
@@ -94,7 +96,29 @@ final class TrackerStore {
 
 		let schedulePredicate = NSPredicate(format: "schedule CONTAINS %@", "\(weekdayRaw)")
 		let datePredicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as CVarArg, nextDay as CVarArg)
-		request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [schedulePredicate, datePredicate])
+
+		let basePredicate = NSCompoundPredicate(type: .or, subpredicates: [schedulePredicate, datePredicate])
+
+		var finalPredicate: NSPredicate = basePredicate
+
+		if let completed = completed {
+			let completedPredicate: NSPredicate
+			if completed {
+				completedPredicate = NSPredicate(
+					format: "SUBQUERY(records, $r, $r.date >= %@ AND $r.date < %@).@count > 0",
+					startOfDay as CVarArg, nextDay as CVarArg
+				)
+			} else {
+				completedPredicate = NSPredicate(
+					format: "SUBQUERY(records, $r, $r.date >= %@ AND $r.date < %@).@count == 0",
+					startOfDay as CVarArg, nextDay as CVarArg
+				)
+			}
+			// (schedule OR date) AND completed
+			finalPredicate = NSCompoundPredicate(type: .and, subpredicates: [basePredicate, completedPredicate])
+		}
+
+		request.predicate = finalPredicate
 		request.sortDescriptors = [
 			NSSortDescriptor(key: "category.title", ascending: true),
 			NSSortDescriptor(key: "name", ascending: true)
@@ -108,6 +132,19 @@ final class TrackerStore {
 		)
 
 		return frc
+	}
+
+	func hasAnyTracker() -> Bool {
+		let request = TrackerCDEntity.fetchRequest()
+		request.fetchLimit = 1
+		let result = try? context.fetch(request)
+		return result?.count ?? 0 > 0
+	}
+
+	func fetchAllTrackers() -> [Tracker] {
+		let trackers = (try? context.fetch(TrackerCDEntity.fetchRequest())) ?? []
+		let trackerModels = trackers.compactMap { tracker(from: $0) }
+		return trackerModels
 	}
 
 	private func fetchRequest(for id: UUID) -> NSFetchRequest<TrackerCDEntity> {

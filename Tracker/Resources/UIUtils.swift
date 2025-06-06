@@ -37,4 +37,29 @@ enum UIUtils {
 			printAllSubviews(of: subview, depth: depth + 1)
 		}
 	}
+
+	static func makeDeleteConfirmationAlert(message: String, action: @escaping () -> ()) -> UIAlertController {
+		let alert = UIAlertController(
+			title: nil,
+			message: String(localized: String.LocalizationValue(message)),
+			preferredStyle: .actionSheet
+		)
+
+		let deleteAction = UIAlertAction(
+			title: String(localized: "Delete"),
+			style: .destructive
+		) { _ in
+			action()
+		}
+
+		let cancelAction = UIAlertAction(
+			title: String(localized: "Cancel"),
+			style: .cancel
+		)
+
+		alert.addAction(deleteAction)
+		alert.addAction(cancelAction)
+
+		return alert
+	}
 }
