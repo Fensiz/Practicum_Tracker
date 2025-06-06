@@ -167,9 +167,10 @@ final class TrackersViewController: UIViewController {
 	private func updateEmptyState() {
 		let hasSearchText = !presenter.searchText.isEmpty
 		let hasVisibleTrackers = !presenter.visibleTrackers.isEmpty
+		let filterIsSet = !(presenter.filter == .allTrackers)
 
-		let dummyViewShowCondition = !hasVisibleTrackers && !hasSearchText
-		let searchDummyViewShowCondition = !hasVisibleTrackers && hasSearchText
+		let dummyViewShowCondition = !hasVisibleTrackers && !hasSearchText && !filterIsSet
+		let searchDummyViewShowCondition = !hasVisibleTrackers && (hasSearchText || filterIsSet)
 
 		dummyView.isHidden = !dummyViewShowCondition
 		searchDummyView.isHidden = !searchDummyViewShowCondition
