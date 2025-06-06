@@ -10,8 +10,18 @@ import UIKit
 final class StatisticCell: UITableViewCell {
 	static let reuseIdentifier = "StatisticCell"
 
-	private let titleLabel = UILabel()
-	private let countLabel = UILabel()
+	private let titleLabel = {
+		let label = UILabel()
+		label.font = .ypMedium12
+		label.textColor = .label
+		return label
+	}()
+	private let countLabel = {
+		let label = UILabel()
+		label.font = .ypBold34
+		label.textColor = .label
+		return label
+	}()
 	private let gradientLayer = CAGradientLayer()
 	private let shapeLayer = CAShapeLayer()
 	private lazy var stack = UIStackView(arrangedSubviews: [countLabel, titleLabel])
@@ -37,12 +47,6 @@ final class StatisticCell: UITableViewCell {
 		contentView.backgroundColor = .white
 		contentView.layer.cornerRadius = 12
 		contentView.layer.masksToBounds = true
-
-		titleLabel.font = .ypMedium12
-		titleLabel.textColor = .label
-
-		countLabel.font = .ypBold34
-		countLabel.textColor = .label
 
 		stack.axis = .vertical
 		stack.alignment = .leading

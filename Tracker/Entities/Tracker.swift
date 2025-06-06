@@ -21,7 +21,15 @@ struct Tracker {
 		return schedule.map { "\($0.rawValue)" }.joined(separator: ",")
 	}
 
-	init(id: UUID, name: String, color: UIColor, emoji: String, schedule: Set<WeekDay>?, date: Date?, isPinned: Bool) {
+	init(
+		id: UUID,
+		name: String,
+		color: UIColor,
+		emoji: String,
+		schedule: Set<WeekDay>?,
+		date: Date?,
+		isPinned: Bool
+	) {
 		self.id = id
 		self.name = name
 		self.color = color
@@ -31,7 +39,14 @@ struct Tracker {
 		self.isPinned = isPinned
 	}
 
-	init(name: String, color: UIColor, emoji: String, schedule: Set<WeekDay>? = nil, date: Date? = nil, isPinned: Bool) {
+	init(
+		name: String,
+		color: UIColor,
+		emoji: String,
+		schedule: Set<WeekDay>? = nil,
+		date: Date? = nil,
+		isPinned: Bool
+	) {
 		self.id = UUID()
 		self.name = name
 		self.color = color
